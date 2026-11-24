@@ -44,16 +44,16 @@ int main() {
   n.actualizar(mapa,c,false,1,700);assert(n.activa() && !n.izquierda && !n.derecha);
   for(unsigned t=800;t<1200;t+=50)n.actualizar(mapa,c,true,1,t);
   assert(!n.izquierda); // no reciclar el ultimo barrido.
-  n.actualizar(mapa,c,true,2,1200);n.actualizar(mapa,c,true,3,1300);
-  assert(!n.izquierda);n.actualizar(mapa,c,true,4,1400);assert(n.izquierda==80);
+  n.actualizar(mapa,c,true,2,1200); assert(!n.izquierda);
+  n.actualizar(mapa,c,true,3,1300); assert(n.izquierda==80);
   // Reinicio del contador de barridos tras reinicio del sensor.
   n.actualizar(mapa,c,false,1000,1500);
   for(unsigned k=1;k<=3;++k)n.actualizar(mapa,c,true,k,1600+k*100);
   assert(n.izquierda==80);
-  // Desconocidos persistentes no son via libre ni obligan a pulsar ARRANCAR.
+  // Barrido valido sin ecos: espacio abierto. Un LiDAR caido llega con sensor=false.
   std::fill_n(mapa,72,0);n.actualizar(mapa,c,true,5,2000);
   for(unsigned k=6;k<50;++k)n.actualizar(mapa,c,true,k,k*500);
-  assert(n.activa() && !n.izquierda && !n.derecha);
+  assert(n.activa() && n.izquierda==80 && n.derecha==80);
   n.parar();std::fill_n(mapa,72,2000);
   for(unsigned k=50;k<60;++k)n.actualizar(mapa,c,true,k,k*500);
   assert(!n.activa() && !n.izquierda); // STOP no se recupera solo.

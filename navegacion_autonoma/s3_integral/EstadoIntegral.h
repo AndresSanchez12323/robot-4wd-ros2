@@ -26,6 +26,6 @@ struct EstadoIntegral {
   float distancia = 0;
   uint16_t mapa[72]{};
   char devkit[300] = "Esperando DevKitC";
-  char evento[96] = "Esperando video, LiDAR y DevKitC";
+  char evento[180] = "Esperando video, LiDAR y DevKitC";
   char ultimaParada[96] = "Ninguna";
 };

@@ -3,89 +3,125 @@
 #include <cassert>
 #include <algorithm>
 #include <iostream>
+#include <cmath>
 
 int main() {
-  uint16_t mapa[72]; std::fill_n(mapa,72,2000);
-  ConfigNavegacion c{0,150,true}; Navegacion n;
-  assert(!n.arrancar({0,150,false},0));
-  assert(!n.arrancar({360,150,true},0));
-  assert(n.arrancar(c,0));
-  for (uint32_t i=1;i<2000;++i) {
-    n.actualizar(mapa,c,true,i,i*100);
-    assert(n.activa() && n.izquierda==80 && n.derecha==80);
-  } // mas de 3 minutos: sin limite de tiempo o centimetros.
-  mapa[0]=400;
-  n.actualizar(mapa,c,true,2000,200000);
-  assert(n.fase==Navegacion::PAUSA_GIRO && !n.izquierda && !n.derecha);
-  n.actualizar(mapa,c,true,2001,200200); assert(!n.izquierda);
-  n.actualizar(mapa,c,true,2002,200300);
-  assert(n.fase==Navegacion::IZQUIERDA && n.izquierda==-80 && n.derecha==80);
-  mapa[0]=2000;
-  n.actualizar(mapa,c,true,2003,200400);
-  n.actualizar(mapa,c,true,2003,200500); // mismo barrido no vale como confirmacion nueva.
-  assert(n.fase==Navegacion::IZQUIERDA);
-  n.actualizar(mapa,c,true,2004,200600);
-  n.actualizar(mapa,c,true,2005,200700);
-  assert(n.fase==Navegacion::RECTO && n.izquierda==80 && n.derecha==80);
-  n.actualizar(mapa,c,true,2006,200800); assert(n.izquierda==80);
-  n.parar(); n.actualizar(mapa,c,true,2007,200900); assert(!n.activa() && !n.izquierda);
-  n.arrancar(c,0); n.actualizar(mapa,c,false,1,1); assert(n.fase==Navegacion::ESPERANDO_DATOS && !n.izquierda);
-  n.actualizar(mapa,c,true,2,100); assert(n.activa() && !n.izquierda); // requiere tres barridos nuevos.
-  mapa[40]=54; n.arrancar(c,0); n.actualizar(mapa,c,true,1,100);
-  assert(n.fase==Navegacion::ESPERANDO_ESPACIO && !n.izquierda); // ecos cercanos nunca se ocultan.
-  mapa[40]=2000; mapa[0]=mapa[1]=0; n.arrancar(c,0); n.actualizar(mapa,c,true,1,100);
-  assert(n.fase==Navegacion::ESPERANDO_ESPACIO && !n.izquierda); // cero frontal no significa libre.
-  mapa[0]=400; mapa[1]=2000; mapa[40]=mapa[41]=0; n.arrancar(c,0); n.actualizar(mapa,c,true,1,100);
-  assert(n.fase==Navegacion::ESPERANDO_ESPACIO && !n.izquierda); // zona de giro sin observar.
-  mapa[40]=mapa[41]=2000; n.arrancar(c,0); n.actualizar(mapa,c,true,1,100);
-  n.actualizar(mapa,c,true,2,400); n.actualizar(mapa,c,true,3,6701);
-  assert(n.activa() && n.fase==Navegacion::PAUSA_GIRO && n.sentido==-1); // cambia lado sin cancelar.
-  mapa[0]=2000; mapa[18]=400; c.frente=90;
-  n.arrancar(c,0); n.actualizar(mapa,c,true,1,100); assert(n.fase==Navegacion::PAUSA_GIRO);
-  // Falta trasera no impide avanzar, pero nunca se considera libre para pivotar.
-  c.frente=0; mapa[18]=2000; mapa[40]=mapa[41]=0;
-  n.arrancar(c,0); n.actualizar(mapa,c,true,1,100); assert(n.izquierda==80);
-  // Cuatro huecos aislados: cada celda conserva una medida real y el margen angular.
-  std::fill_n(mapa,72,2000); mapa[0]=400;
-  mapa[11]=mapa[21]=mapa[41]=mapa[51]=0;
-  n.arrancar(c,0); n.actualizar(mapa,c,true,1,100); assert(n.fase==Navegacion::PAUSA_GIRO);
-  mapa[10]=54; n.arrancar(c,0); n.actualizar(mapa,c,true,1,100);
-  assert(n.fase==Navegacion::ESPERANDO_ESPACIO && !n.izquierda);
-  // Recuperar espacio reanuda dentro de la misma corrida y sin nuevo ARRANCAR.
-  std::fill_n(mapa,72,2000);
-  n.actualizar(mapa,c,true,2,200); n.actualizar(mapa,c,true,2,210);
+  uint16_t mapa[72]; std::fill_n(mapa, 72, 2000);
+  ConfigNavegacion c{0, 150, true}; Navegacion n;
+  assert(!n.arrancar({0, 150, false}, 0));
+  assert(!n.arrancar({360, 150, true}, 0));
+  assert(n.arrancar(c, 0));
+  for (uint32_t i = 1; i < 2000; ++i) {
+    n.actualizar(mapa, c, true, i, i * 100);
+    assert(n.activa() && n.izquierda == 80 && n.derecha == 80);
+  }
+  // Huecos detras no frenan la recta.
+  mapa[40] = mapa[41] = mapa[50] = mapa[51] = 0;
+  n.actualizar(mapa, c, true, 2000, 200000);
+  assert(n.fase == Navegacion::RECTO && n.izquierda == 80);
+
+  // Eco del propio soporte, mas cerca de 80 mm, no es un obstaculo.
+  std::fill_n(mapa, 72, 2000); mapa[10] = 54;
+  n.actualizar(mapa, c, true, 2001, 200100);
+  assert(n.fase == Navegacion::RECTO && n.izquierda == 80);
+
+  // Obstaculo a 40 cm: pivota. Un hueco trasero durante el giro no lo para.
+  mapa[10] = 2000; mapa[0] = 400; mapa[40] = mapa[41] = 0;
+  n.actualizar(mapa, c, true, 2002, 200200);
+  assert(n.fase == Navegacion::PAUSA_GIRO && !n.izquierda && !n.derecha);
+  n.actualizar(mapa, c, true, 2003, 200400);
   assert(!n.izquierda);
-  n.actualizar(mapa,c,true,3,300); assert(!n.izquierda);
-  n.actualizar(mapa,c,true,4,400); assert(n.izquierda==80 && n.derecha==80);
-  // Falta de zona durante el giro: espera y retoma giro con tres barridos.
-  mapa[0]=400; n.actualizar(mapa,c,true,5,500);
-  n.actualizar(mapa,c,true,6,800); assert(n.fase==Navegacion::IZQUIERDA);
-  mapa[40]=mapa[41]=0; n.actualizar(mapa,c,true,7,900);
-  assert(n.fase==Navegacion::ESPERANDO_ESPACIO);
-  mapa[40]=mapa[41]=2000;
-  n.actualizar(mapa,c,true,8,1000); n.actualizar(mapa,c,true,9,1100);
-  n.actualizar(mapa,c,true,10,1200); assert(n.fase==Navegacion::PAUSA_GIRO);
-  n.actualizar(mapa,c,true,11,1500); assert(n.izquierda==-80 && n.derecha==80);
-  // STOP durante espera SIEMPRE cancela el rearme automatico.
-  mapa[40]=54; n.actualizar(mapa,c,true,12,1600); n.parar();
-  std::fill_n(mapa,72,2000);
-  for(unsigned i=13;i<20;++i) n.actualizar(mapa,c,true,i,i*200);
-  assert(!n.activa() && !n.izquierda && !n.derecha);
-  // LiDAR invalido siempre pone velocidades a cero y conserva la solicitud.
-  mapa[40]=54; n.arrancar(c,0); n.actualizar(mapa,c,true,1,100);
-  n.actualizar(mapa,c,false,2,200); assert(n.fase==Navegacion::ESPERANDO_DATOS && !n.izquierda);
-  // Anticipacion reducida: 600 mm ya no bloquea el avance; 400 mm aun exige evasión.
-  std::fill_n(mapa,72,2000); mapa[0]=600;
-  n.arrancar(c,0); n.actualizar(mapa,c,true,1,100); assert(n.izquierda==80 && n.derecha==80);
-  mapa[0]=400; n.actualizar(mapa,c,true,2,200); assert(n.fase==Navegacion::PAUSA_GIRO);
+  n.actualizar(mapa, c, true, 2004, 200500);
+  assert(n.fase == Navegacion::IZQUIERDA && n.izquierda == -80 && n.derecha == 80);
+  mapa[40] = mapa[41] = 0;
+  n.actualizar(mapa, c, true, 2005, 200600);
+  assert(n.fase == Navegacion::IZQUIERDA && n.izquierda == -80);
+
+  // Frente libre dos barridos: vuelve a avanzar, aunque el de atras siga vacio.
+  std::fill_n(mapa, 72, 2000); mapa[40] = mapa[41] = 0;
+  n.actualizar(mapa, c, true, 2006, 200700);
+  assert(n.fase == Navegacion::IZQUIERDA);
+  n.actualizar(mapa, c, true, 2007, 200800);
+  assert(n.fase == Navegacion::RECTO && n.izquierda == 80 && n.derecha == 80);
+
+  // Lado izquierdo abierto (sin ecos) y pared a la derecha: gira a la izquierda.
+  std::fill_n(mapa, 72, 0); mapa[0] = mapa[1] = 400;
+  for (int i = 0; i < 36; ++i) {
+    const float a = Navegacion::relativo(i, c);
+    if (a <= -20.0f && a >= -100.0f) mapa[2 * i] = mapa[2 * i + 1] = 500;
+  }
+  Navegacion lado; lado.arrancar(c, 0);
+  lado.actualizar(mapa, c, true, 1, 100);
+  assert(lado.fase == Navegacion::PAUSA_GIRO && lado.sentido == 1);
+  lado.actualizar(mapa, c, true, 2, 400);
+  assert(lado.fase == Navegacion::IZQUIERDA && lado.izquierda == -80 && lado.derecha == 80);
+
+  // Obstaculo a 18 cm: primero retrocede.
+  std::fill_n(mapa, 72, 2000); mapa[0] = mapa[1] = 180;
+  Navegacion cerca; cerca.arrancar(c, 0);
+  cerca.actualizar(mapa, c, true, 1, 100);
+  assert(cerca.fase == Navegacion::PAUSA_GIRO && !cerca.izquierda);
+  cerca.actualizar(mapa, c, true, 2, 400);
+  assert(cerca.fase == Navegacion::RETROCESO && cerca.izquierda == -70 && cerca.derecha == -70);
+  cerca.actualizar(mapa, c, true, 3, 950);
+  assert(cerca.activa() && cerca.fase == Navegacion::PAUSA_GIRO);
+
+  // El giro no se corta a los 55 grados ni a los varios segundos: sigue hasta ver salida.
+  std::fill_n(mapa, 72, 2000); mapa[0] = 400;
+  Navegacion giro; giro.arrancar(c, 0);
+  giro.actualizar(mapa, c, true, 1, 100);
+  giro.actualizar(mapa, c, true, 2, 400);
+  assert(giro.fase == Navegacion::IZQUIERDA);
+  giro.integrar(0, 400);
+  for (uint32_t t = 450; t <= 900; t += 50) giro.integrar(120.0f, t);
+  assert(std::fabs(giro.yawManiobra) >= 55.0f);
+  giro.actualizar(mapa, c, true, 3, 900);
+  assert(giro.activa() && giro.fase == Navegacion::IZQUIERDA && giro.sentido == 1);
+  assert(giro.izquierda == -80 && giro.derecha == 80);
+  for (uint32_t t = 950; t <= 5000; t += 100) {
+    giro.integrar(90.0f, t);
+    giro.actualizar(mapa, c, true, 4 + (t - 950) / 100, t);
+    assert(giro.activa() && giro.izquierda == -80 && giro.derecha == 80);
+  }
+  std::fill_n(mapa, 72, 2000);
+  giro.actualizar(mapa, c, true, 80, 5200);
+  assert(giro.fase == Navegacion::IZQUIERDA && giro.izquierda == -80);
+  giro.actualizar(mapa, c, true, 81, 5400);
+  assert(giro.fase == Navegacion::RECTO && giro.izquierda == 80 && giro.derecha == 80);
+
+  // Sensor caido: velocidades a cero y la misma corrida. Dos barridos nuevos reanudan.
+  std::fill_n(mapa, 72, 2000);
+  n.parar(); n.arrancar(c, 0); n.actualizar(mapa, c, true, 1, 100); assert(n.izquierda == 80);
+  n.actualizar(mapa, c, false, 1, 200); assert(n.fase == Navegacion::ESPERANDO_DATOS && !n.izquierda);
+  n.actualizar(mapa, c, true, 1, 300); assert(!n.izquierda);
+  n.actualizar(mapa, c, true, 2, 400); assert(!n.izquierda);
+  n.actualizar(mapa, c, true, 3, 500); assert(n.izquierda == 80 && n.derecha == 80);
+
+  // 60 cm por delante no obliga a esquivar. 40 cm si.
+  mapa[0] = 600; n.actualizar(mapa, c, true, 4, 600); assert(n.izquierda == 80 && n.derecha == 80);
+  mapa[0] = 400; n.actualizar(mapa, c, true, 5, 700); assert(n.fase == Navegacion::PAUSA_GIRO);
+
+  n.parar(); n.actualizar(mapa, c, true, 6, 800); assert(!n.activa() && !n.izquierda);
   GuardiaMarcha g;
-  assert(!g.aceptar(123,1,1,0)); // nueva sesion primero en reposo.
-  assert(g.aceptar(123,1,0,0)); assert(g.aceptar(123,2,1,100));
+  assert(!g.aceptar(123, 1, 1, 0));
+  assert(g.aceptar(123, 1, 0, 0)); assert(g.aceptar(123, 2, 1, 100));
   assert(g.vigente(550) && !g.vigente(551));
-  g.bloquear(); assert(!g.aceptar(123,3,1,600));
-  assert(g.aceptar(123,4,0,700)); assert(!g.aceptar(123,5,1,800));
-  assert(g.aceptar(123,6,2,900)); assert(!g.aceptar(123,6,2,1000));
-  assert(!g.aceptar(124,1,3,1100)); assert(g.aceptar(124,1,0,1100));
-  assert(g.aceptar(124,2,1,1200));
-  std::cout << "OK: marcha continua, giro, salida estable, STOP, geometria, ceros, ecos cercanos, caducidad y rearme\n";
+  g.bloquear(); assert(!g.aceptar(123, 3, 1, 600));
+  assert(g.aceptar(123, 4, 0, 700)); assert(!g.aceptar(123, 5, 1, 800));
+  assert(g.aceptar(123, 6, 2, 900)); assert(!g.aceptar(123, 6, 2, 1000));
+  assert(!g.aceptar(124, 1, 3, 1100)); assert(g.aceptar(124, 1, 0, 1100));
+  assert(g.aceptar(124, 2, 1, 1200));
+  // Barrido real de la sala: huecos, eco del costado y obstaculo a 383 mm.
+  // Tiene que girar y seguir girando, no quedarse en cero.
+  const uint16_t sala[72] = {
+    1254,1267,602,456,383,1968,1717,1512,968,896,0,0,126,131,120,114,114,115,115,114,112,114,
+    0,0,0,0,0,0,0,0,0,2430,2570,3367,4725,0,0,6472,6494,0,2563,2633,2732,11178,9984,9251,
+    4989,8020,7672,7354,7298,8798,0,0,6652,6647,5396,3946,4212,4562,4318,0,0,0,1652,1599,1652,0,0,2497,1455,1358
+  };
+  Navegacion real; real.arrancar(c, 0);
+  for (uint32_t i = 1; i <= 40; ++i) real.actualizar(sala, c, true, i, i * 200);
+  assert(real.activa());
+  assert(real.fase == Navegacion::IZQUIERDA || real.fase == Navegacion::DERECHA);
+  assert(real.izquierda != 0 && real.derecha != 0);
+  std::cout << "OK: recta con huecos, pivote continuo, retroceso, yaw, sala real y STOP\n";
 }

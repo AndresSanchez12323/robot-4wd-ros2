@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <WiFi.h>
+#include <ArduinoOTA.h>
 #include <atomic>
 #include "esp_camera.h"
 #include "esp_http_server.h"
@@ -42,7 +43,8 @@ uint32_t ultimoArranqueLidar = 0;
 char mensajeDevkit[300] = "Esperando DevKitC";
 char ultimaParada[96] = "Ninguna";
 char motivoDevkit[48] = "Sin telemetria";
-char evento[96] = "Abre la pagina y espera los indicadores";
+char evento[180] = "Abre la pagina y espera los indicadores";
+float gzDevkit = 0;
 char lineaUSB[32]{};
 size_t longitudUSB = 0;
 bool descartarUSB = false;
@@ -60,8 +62,9 @@ button{font-size:19px;padding:14px 22px;border:0;border-radius:8px;margin:8px 10
 pre{white-space:pre-wrap;background:#203c55;padding:14px;border-radius:8px;overflow-wrap:anywhere}
 </style></head><body>
 <h1>Robot 4WD · navegación continua</h1>
-<p>Version 1.2: izquierda/derecha; reanudacion automatica | anticipacion de evasion: 150 mm mas el margen del chasis.</p>
-<p>ARRANCAR inicia el avance sin límite de centímetros. Ante un obstáculo elige izquierda o derecha según el espacio observado. Si falta espacio, espera y reanuda al recuperarlo. PARAR / STOP cancela la marcha. La espera por LiDAR o espacio se recupera sola. STOP, fallos de enlace, MPU o rueda cancelan la marcha. El video puede reconectarse sin cancelar una marcha con LiDAR sano.</p>
+<p>Version 1.6: avanza hasta que pulses PARAR. Si hay un obstaculo, gira sin parar hasta que el frente quede libre y sigue. Si esta muy cerca, retrocede y vuelve a girar.</p>
+<p>Carga sin cable: une el computador a RobotCam y en Arduino IDE elige el puerto de red robot-s3 o robot-devkit. La clave es CAMBIA_CLAVE_ROBOTCAM. El carro debe estar quieto; al cargar se reinicia.</p>
+<p>ARRANCAR inicia el avance sin limite de centimetros. Un hueco del LiDAR detras o a un lado no frena el carro. Si hay un obstaculo, gira hacia el lado libre y sigue girando hasta encontrar por donde avanzar. Si esta a menos de unos 23 cm, retrocede y continua el giro. PARAR cancela la marcha. Si se pierde el LiDAR, espera y reanuda solo. STOP, el enlace, la MPU o una rueda que no gira cancelan la marcha.</p>
 <div class="paneles"><div class="panel"><h2>Camara OV5640</h2>
 <img id="video" alt="Video de la camara"><br>
 <button onclick="reconectar()">Reconectar video</button>
@@ -157,9 +160,9 @@ esp_err_t estadoWeb(httpd_req_t *req) {
   for (size_t i = 0; i < 72; ++i) {
     usados += snprintf(mapa + usados, sizeof(mapa) - usados, "%s%u", i ? "," : "", copia.mapa[i]);
   }
-  char json[2800];
+  char json[3400];
   snprintf(json, sizeof(json),
-    "{\"version\":\"1.2\",\"horario\":%u,\"ultimaParada\":\"%s\",\"activa\":%u,\"configurada\":%u,\"frente\":%d,\"radio\":%d,\"permiso\":%u,\"camara\":%u,\"lidar\":%u,\"enlace\":%u,\"imu\":%u,"
+    "{\"version\":\"1.6\",\"horario\":%u,\"ultimaParada\":\"%s\",\"activa\":%u,\"configurada\":%u,\"frente\":%d,\"radio\":%d,\"permiso\":%u,\"camara\":%u,\"lidar\":%u,\"enlace\":%u,\"imu\":%u,"
     "\"moviendo\":%u,\"operador\":%u,\"minimo\":%u,\"sectores\":%u,\"paquetes\":%lu,"
     "\"errores\":%lu,\"barridos\":%lu,\"fps\":%.1f,\"distancia\":%.1f,"
     "\"bytesLidar\":%lu,\"erroresCabecera\":%lu,\"erroresChecksum\":%lu,\"iniciosLidar\":%lu,"
@@ -335,6 +338,13 @@ void procesarDevkit(const char *texto) {
   devkitIMU = imu; distanciaDevkit = distancia; bloqueadaDevkit = bloqueada;
   snprintf(motivoDevkit, sizeof(motivoDevkit), "%s", causa);
   snprintf(mensajeDevkit, sizeof(mensajeDevkit), "%s", texto);
+  if (const char *barra = strchr(texto, '|')) {
+    unsigned long p0, p1, p2, p3;
+    float ax, ay, az, gz;
+    if (sscanf(barra, "| %lu %lu %lu %lu %f %f %f %f",
+               &p0, &p1, &p2, &p3, &ax, &ay, &az, &gz) == 8 && isfinite(gz))
+      gzDevkit = gz;
+  }
 }
 
 void leerUSB() {
@@ -370,13 +380,22 @@ void setup() {
   puertoLidar.setRxBufferSize(8192);
   puertoLidar.begin(230400, SERIAL_8N1, 1, 2);
   camaraIniciada = iniciarCamara();
+  WiFi.persistent(false);
   WiFi.mode(WIFI_AP);
-  if (!WiFi.softAP("RobotCam", "CAMBIA_CLAVE_ROBOTCAM", 1, false, 1)) {
+  if (!WiFi.softAP("RobotCam", "CAMBIA_CLAVE_ROBOTCAM", 1, false, 4)) {
     Serial.println("ERROR WIFI");
     return;
   }
+  ArduinoOTA.setHostname("robot-s3");
+  ArduinoOTA.setPassword("CAMBIA_CLAVE_ROBOTCAM");
+  ArduinoOTA.onStart([]() {
+    solicitudStop.store(true);
+    enviarRobot(enlace, "STOP");
+  });
+  ArduinoOTA.begin();
   servidoresListos = iniciarServidores();
-  Serial.printf("AUTONOMO S3 V1.2 IZQUIERDA DERECHA | camara=%u web=%u | LiDAR RX1 TX2\n", camaraIniciada, servidoresListos);
+  Serial.printf("AUTONOMO S3 V1.6 GIRA HASTA SALIR | camara=%u web=%u | LiDAR RX1 TX2\n", camaraIniciada, servidoresListos);
+  Serial.println("OTA: puerto de red robot-s3, clave CAMBIA_CLAVE_ROBOTCAM");
   Serial.print("Pagina http://"); Serial.println(WiFi.softAPIP());
   Serial.println("Wi-Fi RobotCam | clave CAMBIA_CLAVE_ROBOTCAM | motores parados hasta nueva orden");
   const uint8_t iniciar[] = {0xAA, 0x55, 0xF0, 0x0F};
@@ -385,6 +404,7 @@ void setup() {
 }
 
 void loop() {
+  ArduinoOTA.handle();
   if (!solicitudesInicio) { delay(100); return; }
   for (size_t i = 0; i < 4096 && puertoLidar.available(); ++i) {
     lidar.recibir(puertoLidar.read(), millis());
@@ -410,9 +430,8 @@ void loop() {
   const bool devkit = devkitRecibido && ahora - ultimoDevkit <= 600;
   const ConfigNavegacion config = configuracion();
   const bool salud = servidoresListos && operador && devkit && devkitIMU;
-  const char *obstaculo = config.valida() ? navegacion.evaluar(lidar.distancias, config) : "Confirma frente y radio del chasis";
-  const char *giro = config.valida() ? navegacion.evaluar(lidar.distancias, config, true) : obstaculo;
-  const bool permiso = salud && sensor && config.valida() && (!obstaculo || !giro);
+  const char *obstaculo = config.valida() ? navegacion.obstaculoFrente(lidar.distancias, config) : "Confirma frente y radio del chasis";
+  const bool permiso = salud && sensor && config.valida();
   const bool estabaActiva = navegacion.activa();
   if (solicitudStop.exchange(false)) {
     xQueueReset(solicitudesInicio);
@@ -432,18 +451,20 @@ void loop() {
         corrida = orden; navegacion.arrancar(config, ahora);
       }
     }
+    navegacion.integrar(gzDevkit, ahora);
     navegacion.actualizar(lidar.distancias, config, sensor, lidar.barridos, ahora);
     if (!navegacion.activa()) corrida = 0;
     if (estabaActiva && !navegacion.activa()) enviarRobot(enlace, "STOP");
   }
-  if (navegacion.fase == Navegacion::ESPERANDO_ESPACIO || navegacion.fase == Navegacion::ESPERANDO_DATOS)
-    snprintf(evento, sizeof(evento), "Espera automatica: %.70s", navegacion.motivo);
-  else if (navegacion.activa()) snprintf(evento, sizeof(evento), "%s", navegacion.motivo);
-  else if (navegacion.fase == Navegacion::FALLO) snprintf(evento, sizeof(evento), "%s. Pulsa ARRANCAR para reintentar.", navegacion.motivo);
+  if (navegacion.activa() && !navegacion.izquierda && !navegacion.derecha)
+    snprintf(ultimaParada, sizeof(ultimaParada), "%s", navegacion.motivo);
+  if (navegacion.activa() || navegacion.fase == Navegacion::FALLO)
+    snprintf(evento, sizeof(evento), "Fase %s | %.80s | yaw %.0f",
+             navegacion.nombreFase(), navegacion.motivo, navegacion.yawManiobra);
   else snprintf(evento, sizeof(evento), "%s", !config.valida() ? "Confirma frente y radio del chasis" :
       !sensor ? "Esperando barridos validos del LiDAR" : !devkit ? "Esperando DevKit con firmware autonomo V1" :
       !devkitIMU ? "MPU sin datos" : !operador ? "Esperando navegador" :
-      obstaculo && giro ? giro : navegacion.motivo);
+      obstaculo ? obstaculo : navegacion.motivo);
   if (ahora - ultimoLatido >= 100) {
     ultimoLatido = ahora;
     char mensaje[140];

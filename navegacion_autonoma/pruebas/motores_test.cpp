@@ -30,20 +30,28 @@ int main() {
   loop(); assert(!moviendo && guardia.bloqueada==2);
   tiempo(1300); orden("V1 123 9 3 80 80 80 80"); assert(moviendo);
   tiempo(2810); procesarEnlace("V1 123 10 3 80 80 80 80"); loop();
+  assert(moviendo && std::string(motivo)=="ENCODER_REINTENTO");
+  tiempo(4320); procesarEnlace("V1 123 11 3 80 80 80 80"); loop();
   assert(!moviendo && std::string(motivo)=="ENCODER_FL_SIN_PULSOS");
   procesarEnlace("STOP"); assert(std::string(motivo)=="ENCODER_FL_SIN_PULSOS");
-  tiempo(3000); orden("V1 123 11 4 80 80 80 80"); assert(moviendo);
-  imuValida=false; procesarEnlace("V1 123 12 4 80 80 80 80"); assert(!moviendo);
+  tiempo(5000); orden("V1 123 12 4 80 80 80 80"); assert(moviendo);
+  imuValida=false; procesarEnlace("V1 123 13 4 80 80 80 80"); assert(!moviendo);
   // Detectar cada encoder por nombre. Los otros tres tienen pulsos actuales.
-  unsigned seq=12;
+  unsigned seq=13;
   for(unsigned i=0;i<4;++i) {
-    tiempo(4000+i*3000);
+    tiempo(6000+i*3000);
     char m[100];snprintf(m,sizeof(m),"V1 123 %u %u 80 80 80 80",++seq,5+i);
     orden(m);if(pausaInversion){tiempo(reloj+150);aplicarObjetivo(millis());}
     assert(moviendo);
     for(unsigned j=0;j<4;++j){anteriores[j]=pulsos[j];ultimoPulso[j]=reloj;}
     ultimoPulso[i]=reloj-1600;
-    loop();assert(!moviendo && std::string(motivo)==FALLO_ENCODER[i]);
+    loop();
+    assert(moviendo && std::string(motivo)=="ENCODER_REINTENTO");
+    tiempo(reloj+1510);
+    snprintf(m,sizeof(m),"V1 123 %u %u 80 80 80 80",++seq,5+i);
+    for (unsigned j = 0; j < 4; ++j) if (j != i) ultimoPulso[j] = reloj;
+    procesarEnlace(m); loop();
+    assert(!moviendo && std::string(motivo)==FALLO_ENCODER[i]);
   }
   std::cout<<"OK: salidas de cuatro motores, inversion, pausa no bloqueante, STOP, UART tardia, encoders y MPU\n";
 }

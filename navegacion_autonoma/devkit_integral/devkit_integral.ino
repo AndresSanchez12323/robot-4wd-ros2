@@ -1,4 +1,6 @@
 #include <Arduino.h>
+#include <WiFi.h>
+#include <ArduinoOTA.h>
 #include <Wire.h>
 #include <math.h>
 #include "EnlaceRobot.h"
@@ -36,6 +38,7 @@ ReceptorRobot receptor;
 portMUX_TYPE muxPulsos = portMUX_INITIALIZER_UNLOCKED;
 volatile uint32_t pulsos[4]{};
 uint32_t iniciales[4]{}, anteriores[4]{}, ultimoPulso[4]{};
+uint8_t avisosEncoder[4]{};
 uint32_t ultimoReporte = 0;
 uint32_t ultimaLecturaIMU = 0, ultimoIntentoIMU = 0;
 bool moviendo = false;
@@ -43,6 +46,8 @@ uint8_t direccionMPU = 0;
 bool imuValida = false;
 float ax = 0, ay = 0, az = 0, gz = 0;
 const char *motivo = "ARRANQUE";
+bool otaLista = false;
+uint32_t ultimoIntentoWifi = 0;
 char lineaUSB[32]{};
 size_t longitudUSB = 0;
 bool descartarUSB = false;
@@ -189,6 +194,7 @@ void procesarEnlace(const char *texto) {
     copiarPulsos(iniciales);
     copiarPulsos(anteriores);
     for (uint32_t &t : ultimoPulso) t = millis();
+    for (uint8_t &aviso : avisosEncoder) aviso = 0;
   }
   for (size_t i = 0; i < 4; ++i) objetivo[i] = v[i];
   motivo = "ORDEN_AUTONOMA";
@@ -238,7 +244,35 @@ void setup() {
   Wire.setTimeOut(15);
   const bool mpu = iniciarMPU();
   motivo = mpu ? "LISTO" : "MPU_NO_DETECTADO";
-  Serial.printf("AUTONOMO DEVKIT V1 | MPU=%s | motores deshabilitados\n", mpu ? "SI" : "NO");
+  WiFi.persistent(false);
+  WiFi.mode(WIFI_STA);
+  WiFi.setAutoReconnect(true);
+  WiFi.begin("RobotCam", "CAMBIA_CLAVE_ROBOTCAM");
+  ultimoIntentoWifi = millis();
+  Serial.printf("AUTONOMO DEVKIT V1.6 | MPU=%s | motores deshabilitados | OTA robot-devkit\n", mpu ? "SI" : "NO");
+}
+
+void prepararOTA() {
+  ArduinoOTA.setHostname("robot-devkit");
+  ArduinoOTA.setPassword("CAMBIA_CLAVE_ROBOTCAM");
+  ArduinoOTA.onStart([]() { detener("OTA"); });
+  ArduinoOTA.begin();
+  otaLista = true;
+  WiFi.setSleep(false);
+  Serial.println("OTA lista: robot-devkit en RobotCam, clave CAMBIA_CLAVE_ROBOTCAM");
+}
+
+void mantenerWifi(uint32_t ahora) {
+  if (WiFi.status() == WL_CONNECTED) {
+    if (!otaLista) prepararOTA();
+    ArduinoOTA.handle();
+    return;
+  }
+  otaLista = false;
+  if (ahora - ultimoIntentoWifi < 5000) return;
+  ultimoIntentoWifi = ahora;
+  WiFi.disconnect();
+  WiFi.begin("RobotCam", "CAMBIA_CLAVE_ROBOTCAM");
 }
 
 void loop() {
@@ -259,10 +293,22 @@ void loop() {
     else aplicarObjetivo(ahora);
   }
   for (size_t i = 0; i < 4; ++i) {
-    if (!aplicado[i] || cuentas[i] != anteriores[i]) ultimoPulso[i] = ahora;
+    if (cuentas[i] != anteriores[i]) {
+      ultimoPulso[i] = ahora;
+      avisosEncoder[i] = 0;
+    } else if (!aplicado[i]) {
+      ultimoPulso[i] = ahora;
+    }
     anteriores[i] = cuentas[i];
     if (aplicado[i] && ahora - ultimoPulso[i] > LIMITE_ENCODER_MS) {
-      detener(FALLO_ENCODER[i]); break;
+      if (!avisosEncoder[i]) {
+        avisosEncoder[i] = 1;
+        ultimoPulso[i] = ahora;
+        motivo = "ENCODER_REINTENTO";
+        break;
+      }
+      detener(FALLO_ENCODER[i]);
+      break;
     }
   }
   if (ahora - ultimoReporte >= 200) {
@@ -278,5 +324,6 @@ void loop() {
     enviarRobot(enlace, mensaje);
     Serial.println(mensaje);
   }
+  mantenerWifi(ahora);
   delay(1);
 }

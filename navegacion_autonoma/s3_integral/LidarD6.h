@@ -137,7 +137,8 @@ class LidarD6 {
           }
         }
         const uint32_t duracion = ahora - inicioBarrido;
-        completo = !corrupto && cobertura >= 60 && puntos >= 100 &&
+        // 36 de 72 alcanza: en la sala real el D6 deja huecos y aun asi se puede conducir.
+        completo = !corrupto && cobertura >= 36 && puntos >= 100 &&
                    duracion >= 40 && duracion <= 300;
       }
       memset(acumuladas, 0, sizeof(acumuladas));

@@ -26,7 +26,7 @@ int main() {
   // Bloquea izquierda con obstaculos lejanos; elige derecha.
   for(unsigned i=52;i<69;++i)mapa[i]=600;
   mapa[0]=mapa[1]=400;
-  for(unsigned k=0;k<15;++k)tick();
+  for(unsigned k=0;k<6;++k)tick();
   assert(n.fase==Navegacion::DERECHA && objetivo[0]==80 && objetivo[1]==80 && objetivo[2]==-80 && objetivo[3]==-80);
   assert(aplicado[0]==80 && aplicado[1]==80 && aplicado[2]==-80 && aplicado[3]==-80);
   assert(pines[13]==LOW && pines[14]==HIGH && pines[26]==HIGH && pines[27]==LOW);
