@@ -1,0 +1,126 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1550" viewBox="0 0 1600 1550"><rect width="1600" height="1550" fill="#f4f7fb"/><style>text{font-family:Arial,sans-serif;fill:#192f45}.title{font-size:32px;font-weight:bold}.head{font-size:23px;font-weight:bold}.t{font-size:20px}.s{font-size:17px}.wire{fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}</style>
+<text x="40" y="50" class="title">01 · MOTORES — CADA CABLE POR SEPARADO</text>
+<text x="40" y="85" class="s">DevKitC V4 / ESP-32D. Bloques funcionales: no representan el orden físico de pines del TB6612.</text>
+<rect x="45" y="140" width="330" height="380" rx="14" fill="#dceaff" stroke="#8fa4b8" stroke-width="2"/>
+<text x="63" y="174" class="head">ESP32 DevKitC V4</text>
+<rect x="650" y="140" width="340" height="380" rx="14" fill="#dcf0df" stroke="#8fa4b8" stroke-width="2"/>
+<text x="668" y="174" class="head">TB6612 IZQUIERDO</text>
+<text x="65" y="226" class="t">GPIO13</text>
+<path d="M365 220 H507.5 V220 H650" class="wire" stroke="#2563b8" />
+<circle cx="365" cy="220" r="4" fill="#2563b8"/><circle cx="650" cy="220" r="4" fill="#2563b8"/>
+<text x="385" y="211" class="s">I1</text>
+<text x="670" y="226" class="t">AIN1</text>
+<text x="65" y="270" class="t">GPIO14</text>
+<path d="M365 264 H507.5 V264 H650" class="wire" stroke="#2563b8" />
+<circle cx="365" cy="264" r="4" fill="#2563b8"/><circle cx="650" cy="264" r="4" fill="#2563b8"/>
+<text x="385" y="255" class="s">I2</text>
+<text x="670" y="270" class="t">AIN2</text>
+<text x="65" y="314" class="t">GPIO25</text>
+<path d="M365 308 H507.5 V308 H650" class="wire" stroke="#8b4ac4" />
+<circle cx="365" cy="308" r="4" fill="#8b4ac4"/><circle cx="650" cy="308" r="4" fill="#8b4ac4"/>
+<text x="385" y="299" class="s">I3</text>
+<text x="670" y="314" class="t">PWMA</text>
+<text x="65" y="358" class="t">GPIO26</text>
+<path d="M365 352 H507.5 V352 H650" class="wire" stroke="#2563b8" />
+<circle cx="365" cy="352" r="4" fill="#2563b8"/><circle cx="650" cy="352" r="4" fill="#2563b8"/>
+<text x="385" y="343" class="s">I4</text>
+<text x="670" y="358" class="t">BIN1</text>
+<text x="65" y="402" class="t">GPIO27</text>
+<path d="M365 396 H507.5 V396 H650" class="wire" stroke="#2563b8" />
+<circle cx="365" cy="396" r="4" fill="#2563b8"/><circle cx="650" cy="396" r="4" fill="#2563b8"/>
+<text x="385" y="387" class="s">I5</text>
+<text x="670" y="402" class="t">BIN2</text>
+<text x="65" y="446" class="t">GPIO32</text>
+<path d="M365 440 H507.5 V440 H650" class="wire" stroke="#8b4ac4" />
+<circle cx="365" cy="440" r="4" fill="#8b4ac4"/><circle cx="650" cy="440" r="4" fill="#8b4ac4"/>
+<text x="385" y="431" class="s">I6</text>
+<text x="670" y="446" class="t">PWMB</text>
+<rect x="1260" y="183" width="285" height="120" rx="14" fill="#fff0be" stroke="#8fa4b8" stroke-width="2"/>
+<text x="1278" y="217" class="head">MOTOR FL</text>
+<text x="1278" y="251" class="s">Un motor por canal</text>
+<text x="910" y="218" class="t">AO1</text>
+<text x="910" y="263" class="t">AO2</text>
+<path d="M990 211 H1125 V211 H1260" class="wire" stroke="#d04437" />
+<circle cx="990" cy="211" r="4" fill="#d04437"/><circle cx="1260" cy="211" r="4" fill="#d04437"/>
+<text x="1010" y="202" class="s">rojo</text>
+<path d="M990 256 H1125 V256 H1260" class="wire" stroke="#26384a" />
+<circle cx="990" cy="256" r="4" fill="#26384a"/><circle cx="1260" cy="256" r="4" fill="#26384a"/>
+<text x="1010" y="247" class="s">negro</text>
+<rect x="1260" y="338" width="285" height="120" rx="14" fill="#fff0be" stroke="#8fa4b8" stroke-width="2"/>
+<text x="1278" y="372" class="head">MOTOR RL</text>
+<text x="1278" y="406" class="s">Un motor por canal</text>
+<text x="910" y="373" class="t">BO1</text>
+<text x="910" y="418" class="t">BO2</text>
+<path d="M990 366 H1125 V366 H1260" class="wire" stroke="#d04437" />
+<circle cx="990" cy="366" r="4" fill="#d04437"/><circle cx="1260" cy="366" r="4" fill="#d04437"/>
+<text x="1010" y="357" class="s">rojo</text>
+<path d="M990 411 H1125 V411 H1260" class="wire" stroke="#26384a" />
+<circle cx="990" cy="411" r="4" fill="#26384a"/><circle cx="1260" cy="411" r="4" fill="#26384a"/>
+<text x="1010" y="402" class="s">negro</text>
+<rect x="45" y="610" width="330" height="380" rx="14" fill="#dceaff" stroke="#8fa4b8" stroke-width="2"/>
+<text x="63" y="644" class="head">ESP32 DevKitC V4</text>
+<rect x="650" y="610" width="340" height="380" rx="14" fill="#dcf0df" stroke="#8fa4b8" stroke-width="2"/>
+<text x="668" y="644" class="head">TB6612 DERECHO</text>
+<text x="65" y="696" class="t">GPIO18</text>
+<path d="M365 690 H507.5 V690 H650" class="wire" stroke="#2563b8" />
+<circle cx="365" cy="690" r="4" fill="#2563b8"/><circle cx="650" cy="690" r="4" fill="#2563b8"/>
+<text x="385" y="681" class="s">D1</text>
+<text x="670" y="696" class="t">AIN1</text>
+<text x="65" y="740" class="t">GPIO19</text>
+<path d="M365 734 H507.5 V734 H650" class="wire" stroke="#2563b8" />
+<circle cx="365" cy="734" r="4" fill="#2563b8"/><circle cx="650" cy="734" r="4" fill="#2563b8"/>
+<text x="385" y="725" class="s">D2</text>
+<text x="670" y="740" class="t">AIN2</text>
+<text x="65" y="784" class="t">GPIO23</text>
+<path d="M365 778 H507.5 V778 H650" class="wire" stroke="#8b4ac4" />
+<circle cx="365" cy="778" r="4" fill="#8b4ac4"/><circle cx="650" cy="778" r="4" fill="#8b4ac4"/>
+<text x="385" y="769" class="s">D3</text>
+<text x="670" y="784" class="t">PWMA</text>
+<text x="65" y="828" class="t">GPIO4</text>
+<path d="M365 822 H507.5 V822 H650" class="wire" stroke="#2563b8" />
+<circle cx="365" cy="822" r="4" fill="#2563b8"/><circle cx="650" cy="822" r="4" fill="#2563b8"/>
+<text x="385" y="813" class="s">D4</text>
+<text x="670" y="828" class="t">BIN1</text>
+<text x="65" y="872" class="t">GPIO15 *</text>
+<path d="M365 866 H507.5 V866 H650" class="wire" stroke="#2563b8" />
+<circle cx="365" cy="866" r="4" fill="#2563b8"/><circle cx="650" cy="866" r="4" fill="#2563b8"/>
+<text x="385" y="857" class="s">D5</text>
+<text x="670" y="872" class="t">BIN2</text>
+<text x="65" y="916" class="t">GPIO33</text>
+<path d="M365 910 H507.5 V910 H650" class="wire" stroke="#8b4ac4" />
+<circle cx="365" cy="910" r="4" fill="#8b4ac4"/><circle cx="650" cy="910" r="4" fill="#8b4ac4"/>
+<text x="385" y="901" class="s">D6</text>
+<text x="670" y="916" class="t">PWMB</text>
+<rect x="1260" y="653" width="285" height="120" rx="14" fill="#fff0be" stroke="#8fa4b8" stroke-width="2"/>
+<text x="1278" y="687" class="head">MOTOR FR</text>
+<text x="1278" y="721" class="s">Un motor por canal</text>
+<text x="910" y="688" class="t">AO1</text>
+<text x="910" y="733" class="t">AO2</text>
+<path d="M990 681 H1125 V681 H1260" class="wire" stroke="#d04437" />
+<circle cx="990" cy="681" r="4" fill="#d04437"/><circle cx="1260" cy="681" r="4" fill="#d04437"/>
+<text x="1010" y="672" class="s">rojo</text>
+<path d="M990 726 H1125 V726 H1260" class="wire" stroke="#26384a" />
+<circle cx="990" cy="726" r="4" fill="#26384a"/><circle cx="1260" cy="726" r="4" fill="#26384a"/>
+<text x="1010" y="717" class="s">negro</text>
+<rect x="1260" y="808" width="285" height="120" rx="14" fill="#fff0be" stroke="#8fa4b8" stroke-width="2"/>
+<text x="1278" y="842" class="head">MOTOR RR</text>
+<text x="1278" y="876" class="s">Un motor por canal</text>
+<text x="910" y="843" class="t">BO1</text>
+<text x="910" y="888" class="t">BO2</text>
+<path d="M990 836 H1125 V836 H1260" class="wire" stroke="#d04437" />
+<circle cx="990" cy="836" r="4" fill="#d04437"/><circle cx="1260" cy="836" r="4" fill="#d04437"/>
+<text x="1010" y="827" class="s">rojo</text>
+<path d="M990 881 H1125 V881 H1260" class="wire" stroke="#26384a" />
+<circle cx="990" cy="881" r="4" fill="#26384a"/><circle cx="1260" cy="881" r="4" fill="#26384a"/>
+<text x="1010" y="872" class="s">negro</text>
+<rect x="45" y="1110" width="1500" height="125" rx="14" fill="#fff0ce" stroke="#8fa4b8" stroke-width="2"/>
+<text x="63" y="1144" class="head">CONEXIONES COMPARTIDAS</text>
+<text x="63" y="1178" class="s">S1: GPIO2 → STBY izquierdo y derecho. No conectar STBY permanentemente a 3V3.</text>
+<text x="63" y="1207" class="s">L1/L2: 3V3 DevKitC → distribución → VCC de ambos drivers. G1/G2: GND → GND de ambos drivers.</text>
+<rect x="45" y="1260" width="1500" height="225" rx="14" fill="#fff" stroke="#8fa4b8" stroke-width="2"/>
+<text x="63" y="1294" class="head">ANTES DE ENCENDER</text>
+<text x="63" y="1328" class="s">GPIO2 es pin de arranque: comprobar STBY bajo en reset; revisar si el breakout tiene pull-up o puente a VCC.</text>
+<text x="63" y="1357" class="s">GPIO15 (*) también es pin de arranque: la carga puede alterar mensajes ROM. No afecta la independencia del motor.</text>
+<text x="63" y="1386" class="s">No unir AIN1 con BIN1, AIN2 con BIN2 ni PWMA con PWMB. Los seis GPIO de cada driver son distintos.</text>
+<text x="63" y="1415" class="s">VM se conecta solo a la fuente de motores verificada. Ver lámina 03 para alimentación y desacoplo.</text>
+<text x="63" y="1444" class="s">El sentido real se confirma con ruedas elevadas. Rojo/negro en las salidas no garantiza avance.</text></svg>

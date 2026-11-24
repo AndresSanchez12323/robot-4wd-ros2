@@ -1,0 +1,50 @@
+name: pdyp-robot-real
+services:
+  ros:
+    image: ros:humble-ros-base
+    working_dir: /proyecto
+    volumes:
+      - .:/proyecto:ro
+      - aprendizaje:/datos
+    environment:
+      ROS_DOMAIN_ID: "42"
+      ROS_LOCALHOST_ONLY: "1"
+      ROBOT_URL: ${ROBOT_URL:-http://192.168.4.1}
+      MODELO_URL: http://modelo:8080
+      PYTHONDONTWRITEBYTECODE: "1"
+    command:
+      - bash
+      - -c
+      - |
+        python3 observador.py & vision=$$!
+        python3 control.py & control=$$!
+        trap 'kill "$$vision" "$$control" 2>/dev/null; wait' TERM INT EXIT
+        wait -n
+
+  modelo:
+    image: ghcr.io/ggml-org/llama.cpp:server@sha256:6fab63852916c294cc8a2f1515079c4ca40248193eea8868ae742134335b989b
+    volumes:
+      - type: bind
+        source: ${MODELOS_DIR:-${LOCALAPPDATA}/PDyP/vision}
+        target: /modelos
+        read_only: true
+        bind:
+          create_host_path: false
+    command:
+      - --host
+      - 0.0.0.0
+      - --model
+      - /modelos/Qwen3VL-2B-Instruct-Q4_K_M.gguf
+      - --mmproj
+      - /modelos/mmproj-Qwen3VL-2B-Instruct-Q8_0.gguf
+      - --alias
+      - qwen3-vl-2b
+      - --ctx-size
+      - "3072"
+      - --parallel
+      - "1"
+      - --n-gpu-layers
+      - "0"
+
+volumes:
+  aprendizaje:

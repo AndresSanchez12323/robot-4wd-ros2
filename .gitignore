@@ -1,0 +1,14 @@
+**/build/
+**/__pycache__/
+.pytest_cache/
+.venv/
+node_modules/
+*.pyc
+*.elf
+*.bin
+*.log
+.env
+.env.*
+!.env.example
+*.pem
+*.key

@@ -1,0 +1,6 @@
+OK: CRC, tramas corruptas, resincronizacion, barridos, caducidad, ceros y cruce de 360 grados
+OK: marcha continua, giro, salida estable, STOP, geometria, ceros, ecos cercanos, caducidad y rearme
+OK: salidas de cuatro motores, inversion, pausa no bloqueante, STOP, UART tardia, encoders y MPU
+OK: 28 casos izquierda/derecha, 2 escenas variables, 32 combinaciones de salud, larga correccion, desconocidos, sensor recuperado, STOP y fallo real
+OK: planificador -> CRC/UART -> DevKit real con dobles: derecha, inversion, correccion larga, recuperacion y STOP en una misma corrida
+OK: interfaz real, bloqueo de ARRANCAR, STOP, frente cero, seleccion de angulo y desconexion

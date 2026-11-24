@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1510" viewBox="0 0 1600 1510"><rect width="1600" height="1510" fill="#f4f7fb"/><style>text{font-family:Arial,sans-serif;fill:#192f45}.title{font-size:32px;font-weight:bold}.head{font-size:23px;font-weight:bold}.t{font-size:20px}.s{font-size:17px}.wire{fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}</style>
+<text x="40" y="50" class="title">03 · ALIMENTACIÓN Y PROTECCIONES</text>
+<text x="40" y="85" class="s">Topología propuesta. Tensiones, corriente de motores, batería y fusible todavía pendientes de medidas.</text>
+<rect x="45" y="145" width="310" height="120" rx="14" fill="#ffe3dc" stroke="#8fa4b8" stroke-width="2"/>
+<text x="63" y="179" class="head">BATERÍAS 18650</text>
+<text x="63" y="213" class="s">Portabaterías/configuración pendiente</text>
+<text x="63" y="242" class="s">No soldar directamente a las celdas</text>
+<rect x="495" y="145" width="250" height="120" rx="14" fill="#ffe3dc" stroke="#8fa4b8" stroke-width="2"/>
+<text x="513" y="179" class="head">FUSIBLE</text>
+<text x="513" y="213" class="s">En positivo, próximo a batería</text>
+<text x="513" y="242" class="s">Amperaje por dimensionar</text>
+<rect x="930" y="145" width="310" height="120" rx="14" fill="#ffe3dc" stroke="#8fa4b8" stroke-width="2"/>
+<text x="948" y="179" class="head">INTERRUPTOR</text>
+<text x="948" y="213" class="s">Cortar positivo antes de ramas</text>
+<text x="948" y="242" class="s">Accesible en el chasis</text>
+<path d="M355 205 H425 V205 H495" class="wire" stroke="#d04437" />
+<circle cx="355" cy="205" r="4" fill="#d04437"/><circle cx="495" cy="205" r="4" fill="#d04437"/>
+<text x="375" y="196" class="s">+</text>
+<path d="M745 205 H837.5 V205 H930" class="wire" stroke="#d04437" />
+<circle cx="745" cy="205" r="4" fill="#d04437"/><circle cx="930" cy="205" r="4" fill="#d04437"/>
+<text x="765" y="196" class="s">+</text>
+<rect x="45" y="370" width="650" height="170" rx="14" fill="#fff0ce" stroke="#8fa4b8" stroke-width="2"/>
+<text x="63" y="404" class="head">REGULADOR MOTORES · M</text>
+<text x="63" y="438" class="s">LM2596 o XL4016: escoger por tensión/corriente reales</text>
+<text x="63" y="467" class="s">IN+ ← positivo protegido · IN− ← GND estrella</text>
+<text x="63" y="496" class="s">OUT+ = VM ajustado a motores · OUT− = retorno</text>
+<rect x="900" y="370" width="650" height="170" rx="14" fill="#fff0ce" stroke="#8fa4b8" stroke-width="2"/>
+<text x="918" y="404" class="head">REGULADOR LÓGICA · L</text>
+<text x="918" y="438" class="s">Verificar margen de entrada y corriente para salida de 5 V</text>
+<text x="918" y="467" class="s">IN+ ← positivo protegido · IN− ← GND estrella</text>
+<text x="918" y="496" class="s">OUT+ = 5 V verificados · OUT− = retorno</text>
+<path d="M1240 205 H1450 V320" class="wire" stroke="#d04437" />
+<circle cx="1240" cy="205" r="4" fill="#d04437"/><circle cx="1450" cy="320" r="4" fill="#d04437"/>
+<path d="M1450 320 H370 V370" class="wire" stroke="#d04437" />
+<circle cx="1450" cy="320" r="4" fill="#d04437"/><circle cx="370" cy="370" r="4" fill="#d04437"/>
+<text x="390" y="311" class="s">Positivo protegido a IN+ de ambas ramas</text>
+<path d="M1225 320 V370" class="wire" stroke="#d04437" />
+<circle cx="1225" cy="320" r="5" fill="#d04437"/>
+<circle cx="1450" cy="320" r="4" fill="#d04437"/><circle cx="1225" cy="370" r="4" fill="#d04437"/>
+<rect x="45" y="635" width="650" height="160" rx="14" fill="#dcf0df" stroke="#8fa4b8" stroke-width="2"/>
+<text x="63" y="669" class="head">SALIDA M → AMBOS DRIVERS</text>
+<text x="63" y="703" class="s">OUT+ → VM izquierdo y VM derecho (paralelo)</text>
+<text x="63" y="732" class="s">GND drivers → distribución de retorno de potencia</text>
+<text x="63" y="761" class="s">No pasar corriente de motores por protoboard</text>
+<rect x="900" y="635" width="650" height="160" rx="14" fill="#dceaff" stroke="#8fa4b8" stroke-width="2"/>
+<text x="918" y="669" class="head">SALIDA L → AMBAS PLACAS</text>
+<text x="918" y="703" class="s">OUT+ → 5V de ambas placas, tras verificar sus entradas</text>
+<text x="918" y="732" class="s">Durante programación: elegir USB o fuente externa</text>
+<text x="918" y="761" class="s">No alimentar simultáneamente por ambas vías</text>
+<path d="M370 540 H370 V635 H370" class="wire" stroke="#d04437" />
+<circle cx="370" cy="540" r="4" fill="#d04437"/><circle cx="370" cy="635" r="4" fill="#d04437"/>
+<path d="M1225 540 H1225 V635 H1225" class="wire" stroke="#c17d15" />
+<circle cx="1225" cy="540" r="4" fill="#c17d15"/><circle cx="1225" cy="635" r="4" fill="#c17d15"/>
+<rect x="45" y="855" width="650" height="200" rx="14" fill="#fff" stroke="#8fa4b8" stroke-width="2"/>
+<text x="63" y="889" class="head">DESACOPLO EN CADA TB6612</text>
+<text x="63" y="923" class="s">Entre VM y GND: 100 nF cerámico + 10 µF</text>
+<text x="63" y="952" class="s">Entre VCC y GND: 100 nF cerámico + 10 µF</text>
+<text x="63" y="981" class="s">Referencia Toshiba: revisar qué ya trae el breakout</text>
+<text x="63" y="1010" class="s">Electrolítico: (+) a VM/VCC; (−) a GND</text>
+<text x="63" y="1039" class="s">Tensión nominal y capacidad extra: por dimensionar</text>
+<rect x="900" y="855" width="650" height="200" rx="14" fill="#fff" stroke="#8fa4b8" stroke-width="2"/>
+<text x="918" y="889" class="head">DISTRIBUCIÓN 3V3 DEL DEVKITC</text>
+<text x="918" y="923" class="s">3V3 → VCC izquierdo + VCC derecho</text>
+<text x="918" y="952" class="s">Encoders/IMU: solo si módulo y consumo compatibles</text>
+<text x="918" y="981" class="s">No unir salidas 3V3 de las dos placas</text>
+<text x="918" y="1010" class="s">Retorno de cada placa → GND estrella</text>
+<text x="918" y="1039" class="s">No hacer circular corriente de motor por GND del ESP32</text>
+<rect x="45" y="1110" width="1505" height="150" rx="14" fill="#e2e8f0" stroke="#8fa4b8" stroke-width="2"/>
+<text x="63" y="1144" class="head">GND ESTRELLA / DISTRIBUCIÓN DE RETORNOS</text>
+<text x="63" y="1178" class="s">Un punto de distribución une negativo de batería, IN− y OUT− de reguladores no aislados, retornos de drivers y lógica.</text>
+<text x="63" y="1207" class="s">Dar un camino propio a los retornos de potencia y otro a las placas/sensores; todos comparten referencia eléctrica.</text>
+<text x="63" y="1236" class="s">Comprobar continuidad de reguladores reales. La rama de 5 V no se une a VM ni a la línea 3V3.</text>
+<rect x="45" y="1300" width="1505" height="165" rx="14" fill="#fff0ce" stroke="#8fa4b8" stroke-width="2"/>
+<text x="63" y="1334" class="head">DATOS QUE FALTAN PARA AUTORIZAR EL ENCENDIDO</text>
+<text x="63" y="1368" class="s">Tensión de batería y nominal del motor; corriente de arranque/bloqueo; límites térmicos de cada driver y regulador.</text>
+<text x="63" y="1397" class="s">Valor de fusible y sección de cables. El pico anunciado del driver no es una corriente continua permitida.</text>
+<text x="63" y="1426" class="s">Niveles LM393/IMU, estado STBY durante arranque y pinout real de cámara/UART del S3.</text></svg>
