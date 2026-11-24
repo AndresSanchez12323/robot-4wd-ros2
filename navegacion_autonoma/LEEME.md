@@ -10,6 +10,7 @@
 - Si hay un obstáculo, gira hacia el lado libre y no corta el pivote: sigue girando hasta que dos barridos vean el frente libre. Si queda a menos de radio+80 mm después de haber girado, retrocede y continúa el mismo giro. La misma orden ARRANCAR sigue viva.
 - Dos barridos con el frente libre devuelven la recta. Un barrido malo en medio del giro no pone las velocidades en cero.
 - Ecos a menos de 80 mm se ignoran: son el soporte y los cables del LiDAR.
+- Avance y giro usan PWM 140 de 255. El retroceso usa 120. El DevKit acepta hasta ±140. Hay que cargar las dos placas: si el DevKit sigue en el tope de 80, ignora la orden y el carro no se mueve.
 - La primera vez que una rueda no da pulsos en 1,5 s se reintenta. La segunda vez sí cancela la marcha.
 - STOP, la caída de UART y la MPU sin datos siguen cancelando.
 

@@ -20,8 +20,8 @@ class Navegacion {
   static constexpr float ANTICIPACION_MM = 150.0f;
   static constexpr uint16_t ECO_PROPIO_MM = 80;   // cables y soporte del LiDAR
   static constexpr float ABIERTO_MM = 8000.0f;
-  static constexpr int PWM = 80;
-  static constexpr int PWM_RETRO = 70;
+  static constexpr int PWM = 140;       // de 255; mas torque en recta y pivote
+  static constexpr int PWM_RETRO = 120;
   enum Fase {
     PARADO, RECTO, PAUSA_GIRO, IZQUIERDA, DERECHA, RETROCESO,
     ESPERANDO_ESPACIO, ESPERANDO_DATOS, FALLO

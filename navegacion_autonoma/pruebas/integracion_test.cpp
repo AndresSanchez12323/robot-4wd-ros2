@@ -27,8 +27,8 @@ int main() {
   for(unsigned i=52;i<69;++i)mapa[i]=600;
   mapa[0]=mapa[1]=400;
   for(unsigned k=0;k<6;++k)tick();
-  assert(n.fase==Navegacion::DERECHA && objetivo[0]==80 && objetivo[1]==80 && objetivo[2]==-80 && objetivo[3]==-80);
-  assert(aplicado[0]==80 && aplicado[1]==80 && aplicado[2]==-80 && aplicado[3]==-80);
+  assert(n.fase==Navegacion::DERECHA && objetivo[0]==Navegacion::PWM && objetivo[1]==Navegacion::PWM && objetivo[2]==-Navegacion::PWM && objetivo[3]==-Navegacion::PWM);
+  assert(aplicado[0]==Navegacion::PWM && aplicado[1]==Navegacion::PWM && aplicado[2]==-Navegacion::PWM && aplicado[3]==-Navegacion::PWM);
   assert(pines[13]==LOW && pines[14]==HIGH && pines[26]==HIGH && pines[27]==LOW);
   assert(pines[18]==HIGH && pines[19]==LOW && pines[4]==LOW && pines[15]==HIGH);
   assert(moviendo && guardia.corrida==1 && guardia.bloqueada==0);
@@ -39,7 +39,7 @@ int main() {
   std::fill_n(mapa,72,2000);
   for(unsigned k=0;k<10;++k)tick();
   assert(moviendo && n.fase==Navegacion::RECTO && guardia.corrida==1);
-  for(int v:aplicado)assert(v==80);
+  for(int v:aplicado)assert(v==Navegacion::PWM);
   // Recuperar sensor no es un nuevo arranque. STOP si cancela la corrida.
   n.parar();tick();assert(!moviendo && guardia.corrida==0);
   for(unsigned k=0;k<10;++k) { tick(); }

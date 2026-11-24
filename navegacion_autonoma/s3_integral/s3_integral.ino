@@ -62,7 +62,7 @@ button{font-size:19px;padding:14px 22px;border:0;border-radius:8px;margin:8px 10
 pre{white-space:pre-wrap;background:#203c55;padding:14px;border-radius:8px;overflow-wrap:anywhere}
 </style></head><body>
 <h1>Robot 4WD · navegación continua</h1>
-<p>Version 1.6: avanza hasta que pulses PARAR. Si hay un obstaculo, gira sin parar hasta que el frente quede libre y sigue. Si esta muy cerca, retrocede y vuelve a girar.</p>
+<p>Version 1.6: avanza hasta que pulses PARAR. Motores al 140 de 255. Si hay un obstaculo, gira sin parar hasta que el frente quede libre y sigue. Si esta muy cerca, retrocede y vuelve a girar.</p>
 <p>Carga sin cable: une el computador a RobotCam y en Arduino IDE elige el puerto de red robot-s3 o robot-devkit. La clave es CAMBIA_CLAVE_ROBOTCAM. El carro debe estar quieto; al cargar se reinicia.</p>
 <p>ARRANCAR inicia el avance sin limite de centimetros. Un hueco del LiDAR detras o a un lado no frena el carro. Si hay un obstaculo, gira hacia el lado libre y sigue girando hasta encontrar por donde avanzar. Si esta a menos de unos 23 cm, retrocede y continua el giro. PARAR cancela la marcha. Si se pierde el LiDAR, espera y reanuda solo. STOP, el enlace, la MPU o una rueda que no gira cancelan la marcha.</p>
 <div class="paneles"><div class="panel"><h2>Camara OV5640</h2>

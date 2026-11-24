@@ -184,7 +184,7 @@ void procesarEnlace(const char *texto) {
   int v[4]; char extra;
   if (sscanf(texto, "V1 %lu %lu %lu %d %d %d %d %c", &sesion, &secuencia, &corrida,
       &v[0], &v[1], &v[2], &v[3], &extra) != 7) return;
-  for (int valor : v) if (valor < -80 || valor > 80) return;
+  for (int valor : v) if (valor < -140 || valor > 140) return;
   if (!corrida) for (int valor : v) if (valor) return;
   const uint32_t anterior = guardia.corrida;
   if (!guardia.aceptar(sesion, secuencia, corrida, millis())) return;
