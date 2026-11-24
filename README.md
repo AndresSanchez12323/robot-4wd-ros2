@@ -1,12 +1,14 @@
-# Robot móvil 4WD con ROS 2
+# Robot 4WD — versión 1.6
 
-Proyecto de Programación Distribuida y Paralela. Un ESP32-S3 gestiona la cámara OV5640 y el LiDAR COIN-D6. Un ESP32 DevKitC controla los motores y lee los encoders y la IMU. ROS 2 conecta esos datos con la navegación y el modelo visual Qwen3-VL.
+Aquí queda solo el firmware de navegación autónoma 1.6. Las copias anteriores no están en esta rama.
 
-- [Integración ROS 2 y firmware actual](ros2_robot_real/LEEME.md)
-- [Mapa de conexiones](MAPA_CONEXIONES.md) y [revisión de cableado](REVISION_CABLEADO.md)
-- [Navegación autónoma](navegacion_autonoma/LEEME.md) y [prueba de 50 cm](prueba_integral_50cm/LEEME.md)
-- [Memoria técnica](MEMORIA_SUPREMA.md) e [historial del proyecto](AGENTS.md)
+Abrir en Arduino IDE, con todas las pestañas de cada carpeta:
 
-El repositorio incluye pruebas, diagramas, guías y respaldos históricos. En esta copia, CAMBIA_CLAVE_ROBOTCAM es un ejemplo. Configura la misma clave privada en ambos sketches y en OTA antes de compilar para tu robot. Conserva la clave privada fuera de Git. Los manifiestos de los respaldos verifican las copias publicadas.
+| Placa | Sketch |
+|---|---|
+| ESP32-S3, cámara y LiDAR | `navegacion_autonoma/s3_integral/s3_integral.ino` |
+| ESP32 DevKitC, motores | `navegacion_autonoma/devkit_integral/devkit_integral.ino` |
 
-Los registros del PC, los binarios generados localmente y el volumen Docker de aprendizaje quedan en el equipo de trabajo.
+Después de cargar el S3, la página `http://192.168.4.1/` debe decir **Version 1.6**. La carga, la geometría y las paradas están en `navegacion_autonoma/LEEME.md`.
+
+El árbol completo anterior sigue en el commit `1b12bde`. Para recuperarlo, revertir el merge de la rama `solo-v1.6`.
