@@ -1,0 +1,17 @@
+name: robot-llm-nube
+
+services:
+  llm:
+    build:
+      context: .
+      dockerfile: llm/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      TOKEN: ${TOKEN:?}
+      MODELO_URL: http://modelo:8080
+  modelo:
+    image: ghcr.io/ggml-org/llama.cpp:server@sha256:6fab63852916c294cc8a2f1515079c4ca40248193eea8868ae742134335b989b
+    volumes:
+      - ${MODELOS_DIR:?}:/modelos:ro
+    command: ["--host", "0.0.0.0", "--model", "/modelos/llm.gguf", "--ctx-size", "2048", "--n-gpu-layers", "0"]

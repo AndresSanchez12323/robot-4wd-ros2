@@ -12,3 +12,5 @@ Abrir en Arduino IDE, con todas las pestañas de cada carpeta:
 Después de cargar el S3, la página `http://192.168.4.1/` debe decir **Version 1.6**. La carga, la geometría y las paradas están en `navegacion_autonoma/LEEME.md`.
 
 El árbol completo anterior sigue en el commit `1b12bde`. Para recuperarlo, revertir el merge de la rama `solo-v1.6`.
+
+La misión con LLM, VLM, VLA y GPU está en `servicios/`. El carro ejecuta las órdenes; si uno de esos servicios no responde, no se mueve. Los pasos están en `servicios/LEEME.md`.

@@ -1,0 +1,18 @@
+[
+  {"id": 1, "nombre": "cocina", "pistas": ["cocinar", "comer", "kitchen", "estufa"]},
+  {"id": 2, "nombre": "baño", "pistas": ["lavar los dientes", "lavarme los dientes", "inodoro", "bathroom"]},
+  {"id": 3, "nombre": "garaje", "pistas": ["estacionar", "garage", "auto"]},
+  {"id": 4, "nombre": "salida", "pistas": ["laberinto", "exit", "cartel de salida"]},
+  {"id": 5, "nombre": "gaseosa", "pistas": ["soda", "refresco", "bebida", "coca"]},
+  {"id": 6, "nombre": "celular", "pistas": ["telefono", "teléfono", "phone", "movil"]},
+  {"id": 7, "nombre": "bolsa", "pistas": ["bag", "funda", "morral"]},
+  {"id": 8, "nombre": "gafas", "pistas": ["lentes", "glasses", "anteojos"]},
+  {"id": 9, "nombre": "botella", "pistas": ["bottle", "agua", "envase"]},
+  {"id": 10, "nombre": "libro", "pistas": ["book", "cuaderno"]},
+  {"id": 11, "nombre": "llaves", "pistas": ["keys", "llavero"]},
+  {"id": 12, "nombre": "zapato", "pistas": ["shoe", "tenis", "zapatilla"]},
+  {"id": 13, "nombre": "silla", "pistas": ["chair", "asiento"]},
+  {"id": 14, "nombre": "mesa", "pistas": ["table", "escritorio"]},
+  {"id": 15, "nombre": "pelota", "pistas": ["ball", "balon", "balón"]},
+  {"id": 16, "nombre": "mochila", "pistas": ["backpack", "maleta"]}
+]

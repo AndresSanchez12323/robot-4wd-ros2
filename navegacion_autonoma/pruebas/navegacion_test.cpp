@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <iostream>
 #include <cmath>
+#include <cstring>
 
 int main() {
   uint16_t mapa[72]; std::fill_n(mapa, 72, 2000);
@@ -123,5 +124,21 @@ int main() {
   assert(real.activa());
   assert(real.fase == Navegacion::IZQUIERDA || real.fase == Navegacion::DERECHA);
   assert(real.izquierda != 0 && real.derecha != 0);
+
+  Navegacion mision;
+  std::fill_n(mapa, 72, 2000);
+  assert(mision.aplicarMision(2, c, 0));
+  mision.actualizar(mapa, c, true, 1, 100);
+  assert(mision.directa && mision.fase == Navegacion::RECTO);
+  assert(mision.izquierda == Navegacion::PWM && mision.derecha == Navegacion::PWM);
+  mapa[0] = 400; mapa[1] = 400;
+  mision.actualizar(mapa, c, true, 2, 200);
+  assert(mision.fase == Navegacion::RECTO && mision.izquierda == Navegacion::PWM);
+  mapa[0] = 200; mapa[1] = 200;
+  mision.actualizar(mapa, c, true, 3, 300);
+  assert(!mision.activa() && !mision.izquierda && strcmp(mision.motivo, "Parado al lado del objetivo") == 0);
+  assert(mision.aplicarMision(3, c, 400));
+  mision.actualizar(mapa, c, false, 4, 500);
+  assert(!mision.activa() && strcmp(mision.motivo, "Mision sin LiDAR") == 0);
   std::cout << "OK: recta con huecos, pivote continuo, retroceso, yaw, sala real y STOP\n";
 }

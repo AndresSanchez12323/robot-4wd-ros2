@@ -32,17 +32,45 @@ class Navegacion {
   int izquierda = 0, derecha = 0;
   int sentido = 1; // +1 izquierda fisica, -1 derecha fisica.
   float yawManiobra = 0;
+  bool directa = false; // mision: obedece una orden y no esquiva por su cuenta
+  const char *orden = "ninguna";
   const char *motivo = "Pulsa ARRANCAR";
 
   bool activa() const { return fase != PARADO && fase != FALLO; }
-  void parar(const char *causa = "Detenido por el operador") { fase = PARADO; cero(); motivo = causa; }
-  void fallar(const char *causa) { fase = FALLO; cero(); motivo = causa; }
+  void parar(const char *causa = "Detenido por el operador") {
+    fase = PARADO; cero(); directa = false; orden = "parar"; motivo = causa;
+  }
+  void fallar(const char *causa) {
+    fase = FALLO; cero(); directa = false; orden = "parar"; motivo = causa;
+  }
 
   bool arrancar(const ConfigNavegacion &c, uint32_t ahora) {
     if (!c.valida()) { fallar("Configura frente, radio y sentido del LiDAR"); return false; }
-    fase = RECTO; cero(); inicioFase = ahora; ultimoBarrido = UINT32_MAX;
+    fase = RECTO; cero(); directa = false; orden = "explorar";
+    inicioFase = ahora; ultimoBarrido = UINT32_MAX;
     libres = 0; sentido = 1; retroHecho = false; yawManiobra = 0; siguiente = HACER_PIVOTE;
     motivo = "Evaluando barrido antes de mover";
+    return true;
+  }
+
+  // 1 explorar, 2 avanzar, 3 girar a la izquierda, 4 girar a la derecha.
+  bool aplicarMision(int codigo, const ConfigNavegacion &c, uint32_t ahora) {
+    if (codigo == 1) return arrancar(c, ahora);
+    if (!c.valida()) { fallar("Configura frente, radio y sentido del LiDAR"); return false; }
+    if (codigo < 2 || codigo > 4) return false;
+    directa = true;
+    libres = 0; retroHecho = false; yawManiobra = 0;
+    inicioFase = ahora; ultimoBarrido = UINT32_MAX;
+    if (codigo == 2) {
+      fase = RECTO; izquierda = derecha = PWM; orden = "avanzar";
+      motivo = "Acercandose al objetivo";
+    } else if (codigo == 3) {
+      sentido = 1; fase = IZQUIERDA; izquierda = -PWM; derecha = PWM;
+      orden = "girar_izquierda"; motivo = "Girando a la izquierda hacia el objetivo";
+    } else {
+      sentido = -1; fase = DERECHA; izquierda = PWM; derecha = -PWM;
+      orden = "girar_derecha"; motivo = "Girando a la derecha hacia el objetivo";
+    }
     return true;
   }
 
@@ -135,6 +163,18 @@ class Navegacion {
                   uint32_t barrido, uint32_t ahora) {
     if (!activa()) return;
     if (!c.valida()) { fallar("Configuracion de geometria invalida"); return; }
+    if (directa) {
+      if (!sensor) { parar("Mision sin LiDAR"); return; }
+      if (fase == RECTO && hayQueRetroceder(mapa, c)) { parar("Parado al lado del objetivo"); return; }
+      if (fase == RECTO) {
+        izquierda = derecha = PWM; motivo = "Acercandose al objetivo";
+      } else if (fase == IZQUIERDA || fase == DERECHA) {
+        izquierda = -PWM * sentido; derecha = PWM * sentido;
+        motivo = sentido > 0 ? "Girando a la izquierda hacia el objetivo"
+                             : "Girando a la derecha hacia el objetivo";
+      }
+      return;
+    }
     if (!sensor) {
       if (fase != ESPERANDO_DATOS) {
         fase = ESPERANDO_DATOS; cero(); libres = 0; inicioFase = ahora;

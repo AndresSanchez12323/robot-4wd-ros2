@@ -1,0 +1,96 @@
+name: robot-mision
+
+services:
+  gpu:
+    build:
+      context: .
+      dockerfile: gpu/Dockerfile
+    environment:
+      CAPAS_EN_GPU: "99"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  llm:
+    profiles: ["llm-local"]
+    build:
+      context: .
+      dockerfile: llm/Dockerfile
+    environment:
+      TOKEN: ${TOKEN:?}
+      MODELO_URL: ${LLM_MODELO_URL:-http://llm-modelo:8080}
+
+  vlm:
+    build:
+      context: .
+      dockerfile: vlm/Dockerfile
+    environment:
+      TOKEN: ${TOKEN:?}
+      MODELO_URL: ${VLM_MODELO_URL:-http://vlm-modelo:8080}
+      GPU_URL: http://gpu:8080
+      EXIGIR_GPU: ${EXIGIR_GPU:-1}
+    depends_on:
+      - gpu
+
+  vla:
+    build:
+      context: .
+      dockerfile: vla/Dockerfile
+    environment:
+      TOKEN: ${TOKEN:?}
+
+  orquestador:
+    build:
+      context: .
+      dockerfile: orquestador/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      TOKEN: ${TOKEN:?}
+      LLM_URL: ${LLM_URL:?}
+      VLM_URL: http://vlm:8080
+      VLA_URL: http://vla:8080
+      GPU_URL: http://gpu:8080
+      ROBOT_URL: ${ROBOT_URL:-http://192.168.4.1}
+      EXIGIR_GPU: ${EXIGIR_GPU:-1}
+    depends_on:
+      - vlm
+      - vla
+      - gpu
+
+  llm-modelo:
+    profiles: ["modelos"]
+    image: ghcr.io/ggml-org/llama.cpp:server@sha256:6fab63852916c294cc8a2f1515079c4ca40248193eea8868ae742134335b989b
+    volumes:
+      - ${MODELOS_DIR:?}:/modelos:ro
+    command: ["--host", "0.0.0.0", "--model", "/modelos/llm.gguf", "--ctx-size", "2048", "--n-gpu-layers", "0"]
+
+  vlm-modelo:
+    profiles: ["modelos"]
+    image: ghcr.io/ggml-org/llama.cpp:server@sha256:6fab63852916c294cc8a2f1515079c4ca40248193eea8868ae742134335b989b
+    volumes:
+      - ${MODELOS_DIR:?}:/modelos:ro
+    command:
+      - --host
+      - 0.0.0.0
+      - --model
+      - /modelos/Qwen3VL-2B-Instruct-Q4_K_M.gguf
+      - --mmproj
+      - /modelos/mmproj-Qwen3VL-2B-Instruct-Q8_0.gguf
+      - --alias
+      - qwen3-vl-2b
+      - --ctx-size
+      - "3072"
+      - --n-gpu-layers
+      - "99"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]

@@ -28,4 +28,5 @@ struct EstadoIntegral {
   char devkit[300] = "Esperando DevKitC";
   char evento[180] = "Esperando video, LiDAR y DevKitC";
   char ultimaParada[96] = "Ninguna";
+  char orden[24] = "ninguna";
 };

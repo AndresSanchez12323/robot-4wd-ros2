@@ -11,6 +11,7 @@
 - Dos barridos con el frente libre devuelven la recta. Un barrido malo en medio del giro no pone las velocidades en cero.
 - Ecos a menos de 80 mm se ignoran: son el soporte y los cables del LiDAR.
 - Avance y giro usan PWM 140 de 255. El retroceso usa 120. El DevKit acepta hasta ±140. Hay que cargar las dos placas: si el DevKit sigue en el tope de 80, ignora la orden y el carro no se mueve.
+- El S3 acepta `POST /mision?accion=` con explorar, avanzar, girar_izquierda, girar_derecha o parar. Explorar es el esquive de siempre. Avanzar se acerca y, a menos de radio+80 mm, para al lado del objetivo en vez de esquivarlo. Girar no esquiva solo. Esta orden la manda el orquestador de `servicios/`; el DevKit no cambia.
 - La primera vez que una rueda no da pulsos en 1,5 s se reintenta. La segunda vez sí cancela la marcha.
 - STOP, la caída de UART y la MPU sin datos siguen cancelando.
 

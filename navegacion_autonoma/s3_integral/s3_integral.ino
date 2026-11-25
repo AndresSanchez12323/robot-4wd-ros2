@@ -31,6 +31,7 @@ QueueHandle_t solicitudesInicio = nullptr;
 portMUX_TYPE muxEstado = portMUX_INITIALIZER_UNLOCKED;
 EstadoIntegral estado;
 std::atomic<bool> solicitudStop{false};
+std::atomic<int> misionPendiente{0};
 std::atomic<bool> videoActivo{false};
 std::atomic<uint32_t> ultimoFrame{0}, ultimoNavegador{0};
 std::atomic<uint32_t> fpsDecimas{0};
@@ -62,7 +63,7 @@ button{font-size:19px;padding:14px 22px;border:0;border-radius:8px;margin:8px 10
 pre{white-space:pre-wrap;background:#203c55;padding:14px;border-radius:8px;overflow-wrap:anywhere}
 </style></head><body>
 <h1>Robot 4WD · navegación continua</h1>
-<p>Version 1.6: avanza hasta que pulses PARAR. Motores al 140 de 255. Si hay un obstaculo, gira sin parar hasta que el frente quede libre y sigue. Si esta muy cerca, retrocede y vuelve a girar.</p>
+<p>Version 1.6: avanza hasta que pulses PARAR. Motores al 140 de 255. Si hay un obstaculo, gira sin parar hasta que el frente quede libre y sigue. Si esta muy cerca, retrocede y vuelve a girar. Tambien acepta misiones del orquestador: explorar, avanzar, girar y parar al lado del objetivo.</p>
 <p>Carga sin cable: une el computador a RobotCam y en Arduino IDE elige el puerto de red robot-s3 o robot-devkit. La clave es CAMBIA_CLAVE_ROBOTCAM. El carro debe estar quieto; al cargar se reinicia.</p>
 <p>ARRANCAR inicia el avance sin limite de centimetros. Un hueco del LiDAR detras o a un lado no frena el carro. Si hay un obstaculo, gira hacia el lado libre y sigue girando hasta encontrar por donde avanzar. Si esta a menos de unos 23 cm, retrocede y continua el giro. PARAR cancela la marcha. Si se pierde el LiDAR, espera y reanuda solo. STOP, el enlace, la MPU o una rueda que no gira cancelan la marcha.</p>
 <div class="paneles"><div class="panel"><h2>Camara OV5640</h2>
@@ -119,7 +120,7 @@ async function actualizar(){
    'Camara: '+si(d.camara)+' | FPS enviados: '+d.fps+'\n'+
    'LiDAR: '+si(d.lidar)+' | sectores: '+d.sectores+'/72 | minimo: '+d.minimo+' mm\n'+
    'UART: '+si(d.enlace)+' | MPU: '+si(d.imu)+' | operador: '+si(d.operador)+'\n'+
-   'Recorrido de ruedas (incluye giros): '+d.distancia+' cm | marcha autónoma: '+(d.activa?'ACTIVA':'PARADA')+' | motores: '+(d.moviendo?'SI':'NO')+'\n'+
+   'Recorrido de ruedas (incluye giros): '+d.distancia+' cm | marcha autónoma: '+(d.activa?'ACTIVA':'PARADA')+' | motores: '+(d.moviendo?'SI':'NO')+' | orden: '+(d.orden||'ninguna')+'\n'+
    'LiDAR paquetes: '+d.paquetes+' | errores: '+d.errores+' | barridos: '+d.barridos+'\n'+d.evento+'\nUltima parada: '+d.ultimaParada;
   document.getElementById('devkit').textContent='DevKitC\n'+d.devkit;
   document.getElementById('diagnostico').textContent=
@@ -160,15 +161,15 @@ esp_err_t estadoWeb(httpd_req_t *req) {
   for (size_t i = 0; i < 72; ++i) {
     usados += snprintf(mapa + usados, sizeof(mapa) - usados, "%s%u", i ? "," : "", copia.mapa[i]);
   }
-  char json[3400];
+  char json[3800];
   snprintf(json, sizeof(json),
-    "{\"version\":\"1.6\",\"horario\":%u,\"ultimaParada\":\"%s\",\"activa\":%u,\"configurada\":%u,\"frente\":%d,\"radio\":%d,\"permiso\":%u,\"camara\":%u,\"lidar\":%u,\"enlace\":%u,\"imu\":%u,"
+    "{\"version\":\"1.6\",\"horario\":%u,\"ultimaParada\":\"%s\",\"orden\":\"%s\",\"activa\":%u,\"configurada\":%u,\"frente\":%d,\"radio\":%d,\"permiso\":%u,\"camara\":%u,\"lidar\":%u,\"enlace\":%u,\"imu\":%u,"
     "\"moviendo\":%u,\"operador\":%u,\"minimo\":%u,\"sectores\":%u,\"paquetes\":%lu,"
     "\"errores\":%lu,\"barridos\":%lu,\"fps\":%.1f,\"distancia\":%.1f,"
     "\"bytesLidar\":%lu,\"erroresCabecera\":%lu,\"erroresChecksum\":%lu,\"iniciosLidar\":%lu,"
     "\"diagnosticoLidar\":\"%s\","
     "\"devkit\":\"%s\",\"evento\":\"%s\",\"mapa\":[%s]}",
-    copia.horario, copia.ultimaParada, copia.activa, copia.configurada, copia.frente, copia.radio, copia.permiso, copia.camara, copia.lidar, copia.enlace, copia.imu, copia.moviendo,
+    copia.horario, copia.ultimaParada, copia.orden, copia.activa, copia.configurada, copia.frente, copia.radio, copia.permiso, copia.camara, copia.lidar, copia.enlace, copia.imu, copia.moviendo,
     copia.operador, copia.minimo, copia.sectores, (unsigned long)copia.paquetes,
     (unsigned long)copia.errores, (unsigned long)copia.barridos, copia.fps, copia.distancia,
     (unsigned long)copia.bytesLidar, (unsigned long)copia.erroresCabecera,
@@ -217,8 +218,40 @@ esp_err_t configurarWeb(httpd_req_t *req) {
   return httpd_resp_send(req, "Frente y radio confirmados. Retira el objeto de referencia.", HTTPD_RESP_USE_STRLEN);
 }
 
+int codigoMision(const char *accion) {
+  if (strcmp(accion, "explorar") == 0) return 1;
+  if (strcmp(accion, "avanzar") == 0) return 2;
+  if (strcmp(accion, "girar_izquierda") == 0) return 3;
+  if (strcmp(accion, "girar_derecha") == 0) return 4;
+  return 0;
+}
+
+esp_err_t misionWeb(httpd_req_t *req) {
+  if (!peticionLocal(req)) return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Peticion invalida");
+  char query[80], accion[24];
+  if (httpd_req_get_url_query_str(req, query, sizeof(query)) != ESP_OK ||
+      httpd_query_key_value(query, "accion", accion, sizeof(accion)) != ESP_OK)
+    return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Falta la accion");
+  if (strcmp(accion, "parar") == 0) {
+    misionPendiente.store(0);
+    solicitudStop.store(true);
+    return httpd_resp_send(req, "STOP solicitado", HTTPD_RESP_USE_STRLEN);
+  }
+  const int codigo = codigoMision(accion);
+  if (!codigo) return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Accion desconocida");
+  EstadoIntegral copia;
+  portENTER_CRITICAL(&muxEstado);
+  copia = estado;
+  portEXIT_CRITICAL(&muxEstado);
+  if (!copia.permiso || !copia.enlace || !copia.imu)
+    return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Faltan condiciones. Revisa los indicadores.");
+  misionPendiente.store(codigo);
+  return httpd_resp_send(req, "Orden de mision recibida", HTTPD_RESP_USE_STRLEN);
+}
+
 esp_err_t pararWeb(httpd_req_t *req) {
   if (!peticionLocal(req)) return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Peticion invalida");
+  misionPendiente.store(0);
   solicitudStop.store(true);
   return httpd_resp_send(req, "STOP solicitado", HTTPD_RESP_USE_STRLEN);
 }
@@ -284,6 +317,7 @@ bool iniciarServidores() {
   bool bien = registrarRuta(servidorWeb, "/", HTTP_GET, paginaWeb) &&
     registrarRuta(servidorWeb, "/estado", HTTP_GET, estadoWeb) &&
     registrarRuta(servidorWeb, "/avanzar", HTTP_POST, avanzarWeb) &&
+    registrarRuta(servidorWeb, "/mision", HTTP_POST, misionWeb) &&
     registrarRuta(servidorWeb, "/configurar", HTTP_POST, configurarWeb) &&
     registrarRuta(servidorWeb, "/stop", HTTP_POST, pararWeb) &&
     registrarRuta(servidorWeb, "/captura", HTTP_GET, capturaWeb);
@@ -434,6 +468,7 @@ void loop() {
   const bool permiso = salud && sensor && config.valida();
   const bool estabaActiva = navegacion.activa();
   if (solicitudStop.exchange(false)) {
+    misionPendiente.store(0);
     xQueueReset(solicitudesInicio);
     navegacion.parar(); snprintf(ultimaParada, sizeof(ultimaParada), "STOP o cambio de configuracion"); corrida = 0; enviarRobot(enlace, "STOP");
   } else {
@@ -451,10 +486,22 @@ void loop() {
         corrida = orden; navegacion.arrancar(config, ahora);
       }
     }
+    const int mision = misionPendiente.exchange(0);
+    if (mision && permiso && !causa) {
+      if (!navegacion.activa()) {
+        if (++orden == 0) ++orden;
+        corrida = orden;
+      }
+      navegacion.aplicarMision(mision, config, ahora);
+    }
     navegacion.integrar(gzDevkit, ahora);
     navegacion.actualizar(lidar.distancias, config, sensor, lidar.barridos, ahora);
     if (!navegacion.activa()) corrida = 0;
     if (estabaActiva && !navegacion.activa()) enviarRobot(enlace, "STOP");
+    if (!navegacion.activa() &&
+        (strcmp(navegacion.motivo, "Parado al lado del objetivo") == 0 ||
+         strcmp(navegacion.motivo, "Mision sin LiDAR") == 0))
+      snprintf(ultimaParada, sizeof(ultimaParada), "%s", navegacion.motivo);
   }
   if (navegacion.activa() && !navegacion.izquierda && !navegacion.derecha)
     snprintf(ultimaParada, sizeof(ultimaParada), "%s", navegacion.motivo);
@@ -500,6 +547,7 @@ void loop() {
   memcpy(estado.mapa, lidar.distancias, sizeof(estado.mapa));
   memcpy(estado.devkit, mensajeDevkit, sizeof(estado.devkit));
   memcpy(estado.evento, evento, sizeof(estado.evento));
+  snprintf(estado.orden, sizeof(estado.orden), "%s", navegacion.orden);
   portEXIT_CRITICAL(&muxEstado);
   if (ahora - ultimoLog >= 2000) {
     ultimoLog = ahora;
