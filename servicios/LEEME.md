@@ -24,7 +24,7 @@ Para ensayar sin armar una cocina se agregaron objetos, con números nuevos: gas
 
 1. En el S3, cargar otra vez `navegacion_autonoma/s3_integral/s3_integral.ino`. El DevKit que ya acepta PWM 140 no cambia. La página del carro debe seguir diciendo Versión 1.6 y, además, que acepta misiones del orquestador.
 2. Confirmar en `http://192.168.4.1/` el frente, el radio 150 mm y que los ángulos crecen hacia la izquierda.
-3. El Victus entra a RobotCam y conserva internet por cable o por el celular. Sin internet el LLM de la nube sale apagado y el carro no se mueve.
+3. El Victus entra a Lamborgini, con la clave `andresx3`, y conserva internet por cable o por el celular. Sin internet el LLM de la nube sale apagado y el carro no se mueve.
 4. Copiar `.env.example` a `.env`. Cambiar `TOKEN` y poner en `LLM_URL` la dirección pública del contenedor de la nube. El mismo token va en los dos sitios.
 5. Instalar en el Victus el driver NVIDIA, Docker Desktop con WSL2 y el acceso de los contenedores a la GPU. Esta comprobación tiene que mostrar la tarjeta:
 

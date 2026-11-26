@@ -17,7 +17,7 @@
 
 ## Cargar los códigos completos
 
-En la copia local, cada sketch lee la clave privada desde su archivo `RedLocal.h`. Al clonar el repositorio en otro equipo, crea ese archivo dentro de cada carpeta del sketch con la misma definición `constexpr char CLAVE_RED[] = "tu-clave-wifi";`. Git ignora esos archivos.
+La red se llama Lamborgini y la clave es `andresx3` en los dos sketches. El S3 la usa para crear la red y el DevKit para unirse. Un archivo `RedLocal.h` en la carpeta del sketch reemplaza esa clave; Git no lo sube. Si no existe, queda `andresx3`.
 
 Abrir en Arduino IDE desde ESTA carpeta, sin pegar fragmentos:
 

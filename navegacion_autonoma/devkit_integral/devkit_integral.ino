@@ -9,7 +9,7 @@
 #if __has_include("RedLocal.h")
 #include "RedLocal.h"
 #else
-constexpr char CLAVE_RED[] = "CAMBIA_CLAVE_LAMBORGINI";
+constexpr char CLAVE_RED[] = "andresx3";
 #endif
 constexpr char NOMBRE_RED[] = "Lamborgini";
 
