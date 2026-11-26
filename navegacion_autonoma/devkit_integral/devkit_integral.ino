@@ -6,6 +6,13 @@
 #include "EnlaceRobot.h"
 #include "GuardiaMarcha.h"
 
+#if __has_include("RedLocal.h")
+#include "RedLocal.h"
+#else
+constexpr char CLAVE_RED[] = "CAMBIA_CLAVE_LAMBORGINI";
+#endif
+constexpr char NOMBRE_RED[] = "Lamborgini";
+
 #if !defined(CONFIG_IDF_TARGET_ESP32)
 #error "Selecciona ESP32 Dev Module para el DevKitC."
 #endif
@@ -247,19 +254,19 @@ void setup() {
   WiFi.persistent(false);
   WiFi.mode(WIFI_STA);
   WiFi.setAutoReconnect(true);
-  WiFi.begin("RobotCam", "CAMBIA_CLAVE_ROBOTCAM");
+  WiFi.begin(NOMBRE_RED, CLAVE_RED);
   ultimoIntentoWifi = millis();
   Serial.printf("AUTONOMO DEVKIT V1.6 | MPU=%s | motores deshabilitados | OTA robot-devkit\n", mpu ? "SI" : "NO");
 }
 
 void prepararOTA() {
   ArduinoOTA.setHostname("robot-devkit");
-  ArduinoOTA.setPassword("CAMBIA_CLAVE_ROBOTCAM");
+  ArduinoOTA.setPassword(CLAVE_RED);
   ArduinoOTA.onStart([]() { detener("OTA"); });
   ArduinoOTA.begin();
   otaLista = true;
   WiFi.setSleep(false);
-  Serial.println("OTA lista: robot-devkit en RobotCam, clave CAMBIA_CLAVE_ROBOTCAM");
+  Serial.println("OTA lista: robot-devkit en Lamborgini");
 }
 
 void mantenerWifi(uint32_t ahora) {
@@ -272,7 +279,7 @@ void mantenerWifi(uint32_t ahora) {
   if (ahora - ultimoIntentoWifi < 5000) return;
   ultimoIntentoWifi = ahora;
   WiFi.disconnect();
-  WiFi.begin("RobotCam", "CAMBIA_CLAVE_ROBOTCAM");
+  WiFi.begin(NOMBRE_RED, CLAVE_RED);
 }
 
 void loop() {

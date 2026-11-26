@@ -1,6 +1,6 @@
 # Navegación autónoma V1.6 — gira hasta encontrar salida
 
-24 de noviembre de 2026. La página debe decir Version 1.6. El carro que respondió en RobotCam estaba en ROS2-1: esa página no arranca la marcha. La primera carga de esta versión es por USB. Las siguientes salen por Wi-Fi.
+24 de noviembre de 2026. La página debe decir Version 1.6. El carro que respondió en Lamborgini estaba en ROS2-1: esa página no arranca la marcha. La primera carga de esta versión es por USB. Las siguientes salen por Wi-Fi.
 
 ## Qué cambió
 
@@ -17,6 +17,8 @@
 
 ## Cargar los códigos completos
 
+En la copia local, cada sketch lee la clave privada desde su archivo `RedLocal.h`. Al clonar el repositorio en otro equipo, crea ese archivo dentro de cada carpeta del sketch con la misma definición `constexpr char CLAVE_RED[] = "tu-clave-wifi";`. Git ignora esos archivos.
+
 Abrir en Arduino IDE desde ESTA carpeta, sin pegar fragmentos:
 
 | Placa | Archivo | Pestañas necesarias |
@@ -26,7 +28,7 @@ Abrir en Arduino IDE desde ESTA carpeta, sin pegar fragmentos:
 
 Para recibir también el diagnóstico específico de ruedas cargar AMBAS placas. Protocolo V1/A1 permanece compatible con el DevKit autónomo anterior; no mezclar con la antigua prueba de50cm.
 
-Cuando la página ya dice Version 1.6, el computador se une a RobotCam y Arduino IDE muestra los puertos de red `robot-s3` y `robot-devkit`. La clave de la carga es la de RobotCam. El carro queda quieto: al empezar la carga se apagan los motores y la placa se reinicia. El DevKit solo aparece si el S3 ya creó la red. OTA se atiende también durante la marcha; al iniciar la carga se envía STOP.
+Cuando la página ya dice Version 1.6, el computador se une a Lamborgini y Arduino IDE muestra los puertos de red `robot-s3` y `robot-devkit`. La clave de la carga es la de Lamborgini. El carro queda quieto: al empezar la carga se apagan los motores y la placa se reinicia. El DevKit solo aparece si el S3 ya creó la red. OTA se atiende también durante la marcha; al iniciar la carga se envía STOP.
 
 DevKit: ESP32 Dev Module, Flash Mode DIO. S3: ESP32S3 Dev Module; Flash16MB; PSRAM OPI; partición APP3MB/FATFS9MB; USB CDC On Boot Disabled para el USB-UART usado. Paquete compilado con Arduino-ESP32 instalado. Programar con motores sin alimentación y manteniendo el aislamiento USB/alimentación externa adoptado.
 
@@ -34,7 +36,7 @@ No cambia cableado: D6 amarilloTX→S3GPIO1RX, verdeRX→S3GPIO2TX, rojo5V y neg
 
 ## Configuración de dirección física
 
-Wi-Fi RobotCam, página http://192.168.4.1/. La página debe decir Version 1.6. Mantener la página abierta. Sin internet es normal en esa red; perder RobotCam no es normal para controlar.
+Wi-Fi Lamborgini, página http://192.168.4.1/. La página debe decir Version 1.6. Mantener la página abierta. Sin internet es normal en esa red; perder Lamborgini no es normal para controlar.
 
 1. Con el robot parado, confirmar frente y radio150mm. Centrar un objeto delante y seleccionar su ángulo en el radar; no convertir15cm en grados. Comparar la línea de valores aplicados con los campos escritos.
 2. Nuevo selector obligatorio: sentido angular del LiDAR. Mover el objeto del frente un poco hacia la derecha física del carro y observar si su ángulo aumenta o disminuye. Elegir crece hacia derecha si aumenta y crece hacia izquierda si disminuye. En el cruce359→0 aumenta; 0→359 disminuye. No asumir un sentido sin comprobarlo. El dibujo del radar por sí solo no demuestra la orientación física del sensor.

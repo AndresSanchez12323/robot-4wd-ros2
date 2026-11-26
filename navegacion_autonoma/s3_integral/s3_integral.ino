@@ -11,6 +11,13 @@
 #include "Navegacion.h"
 #include "SupervisorMarcha.h"
 
+#if __has_include("RedLocal.h")
+#include "RedLocal.h"
+#else
+constexpr char CLAVE_RED[] = "CAMBIA_CLAVE_LAMBORGINI";
+#endif
+constexpr char NOMBRE_RED[] = "Lamborgini";
+
 #if !defined(CONFIG_IDF_TARGET_ESP32S3)
 #error "Selecciona ESP32S3 Dev Module."
 #endif
@@ -64,7 +71,7 @@ pre{white-space:pre-wrap;background:#203c55;padding:14px;border-radius:8px;overf
 </style></head><body>
 <h1>Robot 4WD · navegación continua</h1>
 <p>Version 1.6: avanza hasta que pulses PARAR. Motores al 140 de 255. Si hay un obstaculo, gira sin parar hasta que el frente quede libre y sigue. Si esta muy cerca, retrocede y vuelve a girar. Tambien acepta misiones del orquestador: explorar, avanzar, girar y parar al lado del objetivo.</p>
-<p>Carga sin cable: une el computador a RobotCam y en Arduino IDE elige el puerto de red robot-s3 o robot-devkit. La clave es CAMBIA_CLAVE_ROBOTCAM. El carro debe estar quieto; al cargar se reinicia.</p>
+<p>Carga sin cable: une el computador a Lamborgini y en Arduino IDE elige el puerto de red robot-s3 o robot-devkit. Usa la clave de la red Wi-Fi. El carro debe estar quieto; al cargar se reinicia.</p>
 <p>ARRANCAR inicia el avance sin limite de centimetros. Un hueco del LiDAR detras o a un lado no frena el carro. Si hay un obstaculo, gira hacia el lado libre y sigue girando hasta encontrar por donde avanzar. Si esta a menos de unos 23 cm, retrocede y continua el giro. PARAR cancela la marcha. Si se pierde el LiDAR, espera y reanuda solo. STOP, el enlace, la MPU o una rueda que no gira cancelan la marcha.</p>
 <div class="paneles"><div class="panel"><h2>Camara OV5640</h2>
 <img id="video" alt="Video de la camara"><br>
@@ -129,7 +136,7 @@ async function actualizar(){
   boton.disabled=!(d.permiso&&!d.activa);
   document.getElementById('configActual').textContent=d.configurada?'Frente confirmado: '+d.frente+' grados | radio: '+d.radio+' mm | angulos crecen hacia '+(d.horario?'derecha':'izquierda'):'Confirma el frente del carro para habilitar la marcha';
   dibujar(d.mapa,d.frente,d.configurada);
- }catch(e){boton.disabled=true;document.getElementById('estado').textContent='Sin datos actuales del S3. Comprueba RobotCam; los valores anteriores pueden estar desactualizados.';
+ }catch(e){boton.disabled=true;document.getElementById('estado').textContent='Sin datos actuales del S3. Comprueba Lamborgini; los valores anteriores pueden estar desactualizados.';
  document.getElementById('devkit').textContent='DevKitC: sin telemetria actual; esperando reconexion';
  document.getElementById('diagnostico').textContent='Sin diagnostico actual; esperando reconexion';}
  setTimeout(actualizar,300);
@@ -416,12 +423,12 @@ void setup() {
   camaraIniciada = iniciarCamara();
   WiFi.persistent(false);
   WiFi.mode(WIFI_AP);
-  if (!WiFi.softAP("RobotCam", "CAMBIA_CLAVE_ROBOTCAM", 1, false, 4)) {
+  if (!WiFi.softAP(NOMBRE_RED, CLAVE_RED, 1, false, 4)) {
     Serial.println("ERROR WIFI");
     return;
   }
   ArduinoOTA.setHostname("robot-s3");
-  ArduinoOTA.setPassword("CAMBIA_CLAVE_ROBOTCAM");
+  ArduinoOTA.setPassword(CLAVE_RED);
   ArduinoOTA.onStart([]() {
     solicitudStop.store(true);
     enviarRobot(enlace, "STOP");
@@ -429,9 +436,9 @@ void setup() {
   ArduinoOTA.begin();
   servidoresListos = iniciarServidores();
   Serial.printf("AUTONOMO S3 V1.6 GIRA HASTA SALIR | camara=%u web=%u | LiDAR RX1 TX2\n", camaraIniciada, servidoresListos);
-  Serial.println("OTA: puerto de red robot-s3, clave CAMBIA_CLAVE_ROBOTCAM");
+  Serial.println("OTA: puerto de red robot-s3");
   Serial.print("Pagina http://"); Serial.println(WiFi.softAPIP());
-  Serial.println("Wi-Fi RobotCam | clave CAMBIA_CLAVE_ROBOTCAM | motores parados hasta nueva orden");
+  Serial.println("Wi-Fi Lamborgini | motores parados hasta nueva orden");
   const uint8_t iniciar[] = {0xAA, 0x55, 0xF0, 0x0F};
   puertoLidar.write(iniciar, sizeof(iniciar));
   ultimoArranqueLidar = millis();
