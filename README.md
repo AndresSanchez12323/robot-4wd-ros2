@@ -13,4 +13,4 @@ Después de cargar el S3, la página `http://192.168.4.1/` debe decir **Version 
 
 El árbol completo anterior sigue en el commit `1b12bde`. Para recuperarlo, revertir el merge de la rama `solo-v1.6`.
 
-La misión con LLM, VLM, VLA y GPU está en `servicios/`. El carro ejecuta las órdenes; si uno de esos servicios no responde, no se mueve. Los pasos están en `servicios/LEEME.md`.
+La misión con LLM, VLM, VLA y GPU está en `servicios/`. La entrada es el gateway GraphQL; el carro ejecuta las órdenes y, si un servicio no responde, no se mueve. Los pasos están en `servicios/LEEME.md`.

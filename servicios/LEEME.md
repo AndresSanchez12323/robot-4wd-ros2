@@ -1,6 +1,6 @@
 # Misión por servicios
 
-El carro sigue con el firmware 1.6. Estos programas deciden a dónde ir. Cada uno vive en su contenedor. Si uno no responde, el orquestador no manda mover el carro.
+El carro sigue con el firmware 1.6. Estos programas deciden a dónde ir. Cada uno vive en su contenedor. La página y las consultas entran solo por el gateway GraphQL. Si uno no responde, la consulta falla y el carro no se mueve.
 
 La prueba se hace en el Victus de Edwin, porque ahí Docker puede ver la NVIDIA. El LLM no corre en el Victus: se publica con `compose.nube.yaml` en un servidor y el Victus lo llama por `LLM_URL`.
 
@@ -13,7 +13,8 @@ La prueba se hace en el Victus de Edwin, porque ahí Docker puede ver la NVIDIA.
 | GPU | `gpu` en el Victus | el VLM deja de responder, aunque el modelo siga encendido |
 | VLA | `vla` en el Victus | no sale la siguiente acción y el carro se detiene |
 | Robot | las dos placas | la frase puede interpretarse, pero no hay movimiento |
-| Orquestador | página en el puerto 8080 del Victus | es el único que junta a los demás |
+| Orquestador | red interna, sin puerto publicado | recorre los servicios cuando el gateway se lo pide |
+| Gateway | Apollo, `http://localhost:4000/graphql` | única puerta. Si se apaga, la página no puede pedir la misión |
 
 El catálogo está en `orquestador/catalogo.json`. Los lugares de clase siguen primero: cocina 1, baño 2, garaje 3 y salida 4. «Me quiero lavar los dientes» tiene que salir como baño. «Ve a la cocina, al baño y al garaje» tiene que salir `1 2 3`.
 
@@ -43,7 +44,7 @@ En el servidor, desde esta carpeta:
 docker compose -f compose.nube.yaml up -d --build
 ```
 
-Queda publicado solo el LLM, en el puerto 8080. El modelo de texto no se publica directo a internet. Para la demostración se apaga ese contenedor y la página del Victus debe mostrar el LLM en rojo, con el carro quieto.
+Queda publicado el LLM para que el gateway del Victus lo llame. El navegador no usa esa dirección. Para la demostración se apaga ese contenedor y la página del Victus debe mostrar el LLM en rojo, con el carro quieto.
 
 ## Victus
 
@@ -53,9 +54,9 @@ Desde esta carpeta, con el `.env` ya escrito:
 docker compose --profile modelos up -d --build
 ```
 
-Abrir `http://localhost:8080/`. La página pide el token una vez. Los cinco servicios tienen que decir LISTO. Recién ahí se escribe la frase y se pulsa IR.
+Abrir `http://localhost:4000/`. La página pide el token una vez y solo habla con `/graphql`. También se puede abrir `http://localhost:4000/graphql` y lanzar la consulta `iniciar`. Los servicios tienen que decir LISTO. Recién ahí se escribe la frase y se pulsa IR.
 
-`docker compose stop gpu` deja el VLM en rojo. `docker compose stop vla` detiene una marcha que ya iba. `docker compose stop vlm` hace lo mismo. Parar el contenedor del LLM en la nube impide empezar.
+`docker compose stop gateway` deja la página sin respuesta. `docker compose stop gpu` deja el VLM en rojo y `iniciar` no mueve el carro. `docker compose stop vla` detiene una marcha que ya iba. `docker compose stop vlm` hace lo mismo. Parar el contenedor del LLM en la nube impide empezar.
 
 Si todavía no hay servidor, el mismo LLM puede correr en el Victus solo para ensayar, con `LLM_URL=http://llm:8080` y:
 
@@ -71,6 +72,7 @@ Estas pruebas de PC no mueven el carro:
 
 ```bash
 python3 pruebas/test_servicios.py
+node --test gateway/resolvers.test.js
 ```
 
 El carro, con los motores sin alimentación, se comprueba en `navegacion_autonoma` con `python3 pruebas/verificar.py`. Después hace falta la prueba en el piso, con PARAR a mano: una frase hacia una gaseosa, la secuencia cocina-baño-garaje y apagar cada servicio.

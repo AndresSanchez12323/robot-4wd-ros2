@@ -1,0 +1,15 @@
+{
+  "name": "robot-gateway",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "node --test resolvers.test.js"
+  },
+  "dependencies": {
+    "@apollo/server": "5.5.2",
+    "@as-integrations/express4": "1.1.2",
+    "express": "4.22.1",
+    "graphql": "16.12.0"
+  }
+}

@@ -28,7 +28,10 @@ PUERTO = int(os.environ.get("PUERTO", "8080"))
 PASOS = int(os.environ.get("PASOS_POR_LUGAR", "40"))
 RAIZ = Path(__file__).resolve().parent
 CATALOGO = json.loads((RAIZ / "catalogo.json").read_text(encoding="utf-8"))
-PAGINA = (RAIZ / "pagina.html").read_text(encoding="utf-8")
+
+
+def viene_del_gateway(handler):
+    return handler.headers.get("X-Entrada") == "graphql"
 
 candado = threading.Lock()
 en_curso = threading.Event()
@@ -237,13 +240,10 @@ class Orquestador(Base):
     def do_GET(self):
         ruta = self.path.split("?", 1)[0]
         if ruta == "/":
-            datos = PAGINA.encode()
-            self.send_response(200)
-            self.send_header("Content-Type", "text/html; charset=utf-8")
-            self.send_header("Cache-Control", "no-store")
-            self.send_header("Content-Length", str(len(datos)))
-            self.end_headers()
-            self.wfile.write(datos)
+            self.rechazar(404, "La entrada es el gateway GraphQL")
+            return
+        if not viene_del_gateway(self):
+            self.rechazar(403, "usa GraphQL")
             return
         if ruta == "/api/salud":
             revision, servicios, _estado = revisar()
@@ -256,6 +256,9 @@ class Orquestador(Base):
         self.rechazar(404, "ruta")
 
     def do_POST(self):
+        if not viene_del_gateway(self):
+            self.rechazar(403, "usa GraphQL")
+            return
         if not token_valido(self, TOKEN):
             self.rechazar(401, "token")
             return
