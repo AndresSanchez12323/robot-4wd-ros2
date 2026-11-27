@@ -69,6 +69,19 @@ def seguir_busqueda(accion, sentido, frente_libre, pasos_sin_ver):
     return giro, sentido, pasos
 
 
+def anotar(bitacora, actual, limite=60):
+    """Guarda un paso solo cuando cambia la decision, para poder copiar la lista."""
+    if not isinstance(bitacora, list) or not isinstance(actual, dict):
+        return bitacora
+    paso = {campo: str(actual.get(campo) or "")[:200] for campo in ("estado", "detalle", "lugar", "accion")}
+    if bitacora and all(bitacora[-1].get(campo) == paso[campo] for campo in paso):
+        return bitacora
+    bitacora.append(paso)
+    if len(bitacora) > limite:
+        del bitacora[:-limite]
+    return bitacora
+
+
 def evaluar(servicios):
     faltan = [nombre for nombre, estado in servicios.items() if not estado or not estado.get("sano")]
     return {"listo": not faltan, "faltan": faltan}

@@ -13,7 +13,7 @@ from urllib.request import Request, urlopen
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from comun.servicio import Base, leer_json, responder, servir, token_valido
-from orquestador.logica import evaluar, llegada, nombre_visto, pistas_de, resumen_lidar, robot_util, seguir_busqueda
+from orquestador.logica import anotar, evaluar, llegada, nombre_visto, pistas_de, resumen_lidar, robot_util, seguir_busqueda
 
 TOKEN = os.environ.get("TOKEN", "")
 URLS = {
@@ -48,6 +48,7 @@ mision = {
     "servicios": {},
 }
 detener = threading.Event()
+bitacora = []
 
 
 def _get(url, ruta, timeout=2.5):
@@ -113,6 +114,7 @@ def revisar():
 def _publicar(**cambios):
     with candado:
         mision.update(cambios)
+        anotar(bitacora, mision)
 
 
 def _orden_robot(accion):
@@ -159,6 +161,9 @@ def _latir(fin):
 
 def _ciclo(texto):
     detener.clear()
+    with candado:
+        bitacora.clear()
+    _publicar(detalle="Frase: " + texto[:200], lugar="", accion="")
     fin = threading.Event()
     threading.Thread(target=_latir, args=(fin,), daemon=True).start()
     try:
@@ -302,7 +307,9 @@ class Orquestador(Base):
             return
         if ruta == "/api/mision":
             with candado:
-                responder(self, 200, dict(mision))
+                datos = dict(mision)
+                datos["bitacora"] = [dict(paso) for paso in bitacora]
+            responder(self, 200, datos)
             return
         self.rechazar(404, "ruta")
 

@@ -72,6 +72,7 @@ test("con todos listos la orden sale hacia el orquestador", async () => {
   const mision = await resolvers.Mutation.iniciar(null, { texto: "ve a la gaseosa" }, { authorization: "Bearer secreto" });
   assert.equal(cuerpo, JSON.stringify({ texto: "ve a la gaseosa" }));
   assert.equal(mision.nombres[0], "gaseosa");
+  assert.deepEqual(mision.bitacora, []);
   await assert.rejects(
     () => resolvers.Mutation.iniciar(null, { texto: "ve a la gaseosa" }, { authorization: "Bearer otro" }),
     /token/,

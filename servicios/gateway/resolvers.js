@@ -14,6 +14,13 @@ const typeDefs = `#graphql
     servicios: [Servicio!]!
   }
 
+  type Paso {
+    estado: String!
+    detalle: String!
+    lugar: String!
+    accion: String!
+  }
+
   type Mision {
     estado: String!
     detalle: String!
@@ -21,6 +28,7 @@ const typeDefs = `#graphql
     nombres: [String!]!
     lugar: String!
     accion: String!
+    bitacora: [Paso!]!
   }
 
   type Query {
@@ -58,6 +66,13 @@ function comoMision(datos) {
   const origen = datos && typeof datos === "object" ? datos : {};
   const lugares = Array.isArray(origen.lugares) ? origen.lugares.filter((n) => Number.isInteger(n)) : [];
   const nombres = Array.isArray(origen.nombres) ? origen.nombres.map((n) => String(n)) : [];
+  const cruda = Array.isArray(origen.bitacora) ? origen.bitacora.slice(-60) : [];
+  const bitacora = cruda.filter((paso) => paso && typeof paso === "object").map((paso) => ({
+    estado: String(paso.estado || ""),
+    detalle: String(paso.detalle || "").slice(0, 200),
+    lugar: String(paso.lugar || ""),
+    accion: String(paso.accion || ""),
+  }));
   return {
     estado: String(origen.estado || "quieto"),
     detalle: String(origen.detalle || ""),
@@ -65,6 +80,7 @@ function comoMision(datos) {
     nombres,
     lugar: String(origen.lugar || ""),
     accion: String(origen.accion || ""),
+    bitacora,
   };
 }
 

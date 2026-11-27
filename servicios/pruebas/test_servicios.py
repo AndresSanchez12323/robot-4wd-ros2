@@ -9,7 +9,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from comun.servicio import token_valido
 from llm.logica import catalogo_valido, normalizar
-from orquestador.logica import evaluar, llegada, nombre_visto, resumen_lidar, robot_util, seguir_busqueda
+from orquestador.logica import anotar, evaluar, llegada, nombre_visto, resumen_lidar, robot_util, seguir_busqueda
 from vla.logica import decidir
 from vlm.logica import extraer, gpu_exigida_lista, jpeg_valido
 
@@ -84,6 +84,14 @@ class Accion(unittest.TestCase):
         self.assertEqual(nombre_visto("botella", "una botella de agua", [
             {"nombre": "botella", "pistas": ["bottle", "agua"]},
         ]), "botella")
+
+    def test_la_bitacora_guarda_cada_decision_distinta(self):
+        lista = []
+        anotar(lista, {"estado": "en_marcha", "detalle": "Buscando botella", "lugar": "botella", "accion": "avanzar"})
+        anotar(lista, {"estado": "en_marcha", "detalle": "Buscando botella", "lugar": "botella", "accion": "avanzar"})
+        anotar(lista, {"estado": "en_marcha", "detalle": "Objetivo confirmado al frente", "lugar": "botella", "accion": "parar"})
+        self.assertEqual(len(lista), 2)
+        self.assertEqual(lista[1]["accion"], "parar")
 
 
 class Vision(unittest.TestCase):
