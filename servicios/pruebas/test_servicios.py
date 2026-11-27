@@ -9,7 +9,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from comun.servicio import token_valido
 from llm.logica import catalogo_valido, normalizar
-from orquestador.logica import evaluar, llegada, resumen_lidar, robot_util
+from orquestador.logica import evaluar, llegada, resumen_lidar, robot_util, seguir_busqueda
 from vla.logica import decidir
 from vlm.logica import extraer, gpu_exigida_lista, jpeg_valido
 
@@ -66,6 +66,12 @@ class Accion(unittest.TestCase):
                                  {"cerca": False, "frente_libre": True})["accion"], "explorar")
         self.assertEqual(decidir("gaseosa", {"visible": True, "objeto": "silla", "lado": "frente"},
                                  {"cerca": True})["accion"], "explorar")
+
+    def test_sin_objeto_sigue_el_mismo_giro(self):
+        self.assertEqual(seguir_busqueda("explorar", 1), ("girar_izquierda", 1))
+        self.assertEqual(seguir_busqueda("explorar", -1), ("girar_derecha", -1))
+        self.assertEqual(seguir_busqueda("girar_derecha", 1), ("girar_derecha", -1))
+        self.assertEqual(seguir_busqueda("avanzar", -1), ("avanzar", -1))
 
 
 class Vision(unittest.TestCase):

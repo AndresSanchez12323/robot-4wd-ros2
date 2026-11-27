@@ -6,6 +6,19 @@ ECO_PROPIO = 80
 ANTICIPACION = 150
 
 
+def seguir_busqueda(accion, sentido):
+    """Si el objeto no se ve, el carro sigue girando hacia el mismo lado."""
+    if accion == "girar_izquierda":
+        return "girar_izquierda", 1
+    if accion == "girar_derecha":
+        return "girar_derecha", -1
+    if accion == "explorar":
+        if sentido < 0:
+            return "girar_derecha", -1
+        return "girar_izquierda", 1
+    return accion, sentido
+
+
 def evaluar(servicios):
     faltan = [nombre for nombre, estado in servicios.items() if not estado or not estado.get("sano")]
     return {"listo": not faltan, "faltan": faltan}

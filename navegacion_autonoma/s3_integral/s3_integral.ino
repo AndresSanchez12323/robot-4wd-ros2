@@ -267,7 +267,7 @@ esp_err_t capturaWeb(httpd_req_t *req) {
   if (!camaraIniciada) return httpd_resp_send_500(req);
   camera_fb_t *vieja = esp_camera_fb_get();
   if (vieja) esp_camera_fb_return(vieja);
-  vTaskDelay(pdMS_TO_TICKS(200));
+  vTaskDelay(pdMS_TO_TICKS(100));
   camera_fb_t *imagen = esp_camera_fb_get();
   if (!imagen) return httpd_resp_send_500(req);
   httpd_resp_set_type(req, "image/jpeg");

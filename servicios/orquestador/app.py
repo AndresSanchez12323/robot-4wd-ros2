@@ -13,7 +13,7 @@ from urllib.request import Request, urlopen
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from comun.servicio import Base, leer_json, responder, servir, token_valido
-from orquestador.logica import evaluar, llegada, resumen_lidar, robot_util
+from orquestador.logica import evaluar, llegada, resumen_lidar, robot_util, seguir_busqueda
 
 TOKEN = os.environ.get("TOKEN", "")
 URLS = {
@@ -26,7 +26,8 @@ URLS = {
 EXIGIR_GPU = os.environ.get("EXIGIR_GPU", "1") == "1"
 PUERTO = int(os.environ.get("PUERTO", "8080"))
 PASOS = int(os.environ.get("PASOS_POR_LUGAR", "40"))
-PASO_SEGUNDOS = 0.6
+GIRO_SEGUNDOS = 0.35
+AVANCE_SEGUNDOS = 0.45
 RAIZ = Path(__file__).resolve().parent
 CATALOGO = json.loads((RAIZ / "catalogo.json").read_text(encoding="utf-8"))
 
@@ -141,7 +142,7 @@ def _esperar_quieto():
             return True
         estado = _estado_robot()
         if estado and not estado.get("activa") and not estado.get("moviendo"):
-            time.sleep(0.35)
+            time.sleep(0.15)
             return True
         time.sleep(0.1)
     return False
@@ -194,6 +195,7 @@ def _recorrer(texto):
         parada_inicial = estado.get("ultimaParada")
         ultima = ""
         ordenes = 0
+        sentido = 1
         for _paso in range(PASOS):
             if detener.is_set():
                 break
@@ -246,7 +248,7 @@ def _recorrer(texto):
                 _parar_robot()
                 _publicar(estado="detenida", detalle="VLM o VLA no contestaron. Motores quietos.")
                 return
-            accion = decision["accion"]
+            accion, sentido = seguir_busqueda(decision["accion"], sentido)
             _publicar(accion=accion, detalle=decision.get("motivo", nombre))
             if accion == "parar" or detener.is_set():
                 _parar_robot()
@@ -259,7 +261,7 @@ def _recorrer(texto):
                 return
             ultima = accion
             ordenes += 1
-            time.sleep(PASO_SEGUNDOS)
+            time.sleep(GIRO_SEGUNDOS if accion.startswith("girar_") else AVANCE_SEGUNDOS)
         else:
             _parar_robot()
             _publicar(estado="detenida", detalle="No encontro " + nombre + " a tiempo")
