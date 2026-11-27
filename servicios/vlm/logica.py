@@ -70,18 +70,18 @@ def mensaje(objeto, imagen, pistas=None):
         "max_tokens": 160,
         "messages": [
             {"role": "system", "content": (
-                "Miras una foto de la camara del robot y confirmas si el objeto pedido se ve. "
-                "Si aparece, aunque esté cerca, pequeño o con otro nombre parecido, "
-                "visible es true y objeto es exactamente el nombre pedido. "
-                "lado es frente si está en el centro o adelante, izquierda, derecha o indeterminada. "
-                "Solo usa visible false si el objeto no está en la foto. "
+                "Miras una foto de la camara del robot. "
+                "visible es true solo si el objeto pedido se ve de verdad. "
+                "Si ves otra cosa, visible es false y objeto es el nombre de lo que ves. "
+                "Un objeto cerca no cuenta si no es el pedido. "
+                "lado es frente, izquierda, derecha o indeterminada. "
                 "Responde solo JSON."
             )},
             {"role": "user", "content": [
                 {"type": "text", "text": (
-                    "Confirma si se ve: " + alias + ". "
-                    "Si sí está al frente responde "
-                    "{\"objeto\":\"" + objeto + "\",\"lado\":\"frente\",\"visible\":true}."
+                    "El objeto pedido es: " + alias + ". "
+                    "Si no es ese objeto responde "
+                    "{\"objeto\":\"otro\",\"lado\":\"frente\",\"visible\":false}."
                 )},
                 {"type": "image_url", "image_url": {"url": "data:image/jpeg;base64," + imagen}},
             ]},

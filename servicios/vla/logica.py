@@ -17,7 +17,7 @@ def decidir(destino, vision, lidar):
     if lado not in LADOS or not isinstance(vision.get("visible"), bool):
         raise ValueError("vision")
     visible = vision["visible"] and _mismo(vision.get("objeto"), destino)
-    if visible and lidar.get("cerca") and lado in ("frente", "indeterminada"):
+    if visible and lado == "frente" and lidar.get("cerca"):
         return {"accion": "parar", "motivo": "Objetivo confirmado al frente"}
     if visible and lado == "frente":
         return {"accion": "avanzar", "motivo": "Objetivo confirmado al frente"}

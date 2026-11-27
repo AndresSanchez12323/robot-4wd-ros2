@@ -87,7 +87,7 @@ def evaluar(servicios):
     return {"listo": not faltan, "faltan": faltan}
 
 
-def llegada(accion, estado, parada_inicial, ordenes):
+def llegada(accion, estado, parada_inicial, ordenes, confirmado=False):
     if accion == "parar":
         return "llegue"
     if ordenes < 1 or not isinstance(estado, dict):
@@ -98,7 +98,7 @@ def llegada(accion, estado, parada_inicial, ordenes):
     if parada == parada_inicial:
         return "seguir"
     if "Parado al lado" in parada:
-        return "llegue"
+        return "llegue" if confirmado else "seguir"
     if parada not in ("Ninguna", "STOP o cambio de configuracion", ""):
         return "fallo"
     return "seguir"

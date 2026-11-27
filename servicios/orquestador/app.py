@@ -203,6 +203,7 @@ def _recorrer(texto):
         ordenes = 0
         sentido = 1
         pasos_sin_ver = 0
+        confirmado = False
         for _paso in range(PASOS):
             if detener.is_set():
                 break
@@ -212,7 +213,7 @@ def _recorrer(texto):
                 _publicar(estado="detenida", detalle="Se perdio el carro")
                 return
             if ordenes >= 1:
-                resultado = llegada(ultima or "explorar", estado, parada_inicial, ordenes)
+                resultado = llegada(ultima or "explorar", estado, parada_inicial, ordenes, confirmado)
                 if resultado == "llegue":
                     _parar_robot()
                     ultima = ""
@@ -275,6 +276,7 @@ def _recorrer(texto):
                 return
             ultima = accion
             ordenes += 1
+            confirmado = bool(visto and accion == "avanzar")
             if accion.startswith("girar_"):
                 time.sleep(GIRO_SEGUNDOS)
             elif visto:

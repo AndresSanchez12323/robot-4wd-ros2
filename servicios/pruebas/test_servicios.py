@@ -71,6 +71,12 @@ class Accion(unittest.TestCase):
                                  {"cerca": False, "frente_libre": True})["accion"], "explorar")
         self.assertEqual(decidir("gaseosa", {"visible": True, "objeto": "silla", "lado": "frente"},
                                  {"cerca": True})["accion"], "explorar")
+        self.assertEqual(decidir("gafas", {"visible": True, "objeto": "gafas", "lado": "indeterminada"},
+                                 {"cerca": True})["accion"], "explorar")
+        self.assertEqual(llegada("avanzar", {"activa": False, "ultimaParada": "Parado al lado del objetivo"},
+                                 "Ninguna", 1, False), "seguir")
+        self.assertEqual(llegada("avanzar", {"activa": False, "ultimaParada": "Parado al lado del objetivo"},
+                                 "Ninguna", 1, True), "llegue")
 
     def test_sin_objeto_avanza_y_solo_gira_ante_la_pared(self):
         self.assertEqual(seguir_busqueda("explorar", 1, True, 0), ("avanzar", 1, 1))
@@ -137,7 +143,7 @@ class Mision(unittest.TestCase):
         estado = {"activa": 0, "ultimaParada": "Parado al lado del objetivo"}
         self.assertEqual(llegada("explorar", estado, "Parado al lado del objetivo", 1), "seguir")
         estado = {"activa": 0, "ultimaParada": "Parado al lado del objetivo"}
-        self.assertEqual(llegada("explorar", estado, "Ninguna", 1), "llegue")
+        self.assertEqual(llegada("explorar", estado, "Ninguna", 1, True), "llegue")
         self.assertEqual(llegada("parar", estado, "Ninguna", 0), "llegue")
         self.assertEqual(llegada("explorar", {"activa": 0, "ultimaParada": "ENCODER_RR_SIN_PULSOS"}, "Ninguna", 1), "fallo")
 
