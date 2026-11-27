@@ -81,12 +81,18 @@ class Accion(unittest.TestCase):
         self.assertEqual(nombre_visto("gaseosa", "soda", [
             {"nombre": "gaseosa", "pistas": ["soda", "coca"]},
         ]), "gaseosa")
+        self.assertEqual(nombre_visto("botella", "una botella de agua", [
+            {"nombre": "botella", "pistas": ["bottle", "agua"]},
+        ]), "botella")
 
 
 class Vision(unittest.TestCase):
     def test_respuesta_estricta_y_gpu_obligatoria(self):
         visto = extraer('{"objeto":"gaseosa","lado":"frente","visible":true}')
         self.assertTrue(visto["visible"])
+        confirmada = extraer('{"objeto":"botella","lado":"centro","visible":"si"}')
+        self.assertTrue(confirmada["visible"])
+        self.assertEqual(confirmada["lado"], "frente")
         with self.assertRaises(ValueError):
             extraer('{"objeto":"gaseosa","lado":"arriba","visible":true}')
         self.assertFalse(jpeg_valido("no-es-una-foto"))

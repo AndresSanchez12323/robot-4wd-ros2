@@ -6,6 +6,14 @@ from urllib.request import Request, urlopen
 
 LADOS = ("frente", "izquierda", "derecha", "indeterminada")
 CAMPOS = ("objeto", "lado", "visible")
+LADO_ALIAS = {
+    "frente": "frente", "adelante": "frente", "centro": "frente", "center": "frente",
+    "front": "frente", "enfrente": "frente",
+    "izquierda": "izquierda", "izq": "izquierda", "left": "izquierda",
+    "derecha": "derecha", "der": "derecha", "right": "derecha",
+    "indeterminada": "indeterminada", "indeterminado": "indeterminada",
+    "ninguno": "indeterminada", "desconocido": "indeterminada",
+}
 
 
 def jpeg_valido(codificado):
@@ -18,6 +26,27 @@ def jpeg_valido(codificado):
     return datos.startswith(b"\xff\xd8") and datos.endswith(b"\xff\xd9") and len(datos) <= 1_200_000
 
 
+def _lado(valor):
+    if not isinstance(valor, str):
+        raise ValueError("vision")
+    lado = LADO_ALIAS.get(valor.strip().lower())
+    if not lado:
+        raise ValueError("vision")
+    return lado
+
+
+def _visible(valor):
+    if isinstance(valor, bool):
+        return valor
+    if valor in (0, 1):
+        return bool(valor)
+    if isinstance(valor, str) and valor.strip().lower() in ("true", "si", "sí", "yes", "1", "verdadero"):
+        return True
+    if isinstance(valor, str) and valor.strip().lower() in ("false", "no", "0", "falso"):
+        return False
+    raise ValueError("vision")
+
+
 def extraer(texto):
     limpio = texto.strip()
     inicio, fin = limpio.find("{"), limpio.rfind("}")
@@ -26,27 +55,34 @@ def extraer(texto):
     datos = json.loads(limpio[inicio:fin + 1])
     if not isinstance(datos, dict) or any(campo not in datos for campo in CAMPOS):
         raise ValueError("campos")
-    if datos["lado"] not in LADOS or not isinstance(datos["visible"], bool):
-        raise ValueError("vision")
     if not isinstance(datos["objeto"], str) or not datos["objeto"].strip():
         raise ValueError("objeto")
-    return {"objeto": datos["objeto"].strip(), "lado": datos["lado"], "visible": datos["visible"]}
+    return {"objeto": datos["objeto"].strip(), "lado": _lado(datos["lado"]), "visible": _visible(datos["visible"])}
 
 
-def mensaje(objeto, imagen):
+def mensaje(objeto, imagen, pistas=None):
+    nombres = [objeto]
+    if isinstance(pistas, list):
+        nombres.extend(pista.strip() for pista in pistas if isinstance(pista, str) and pista.strip())
+    alias = ", ".join(nombres[:8])
     return {
         "temperature": 0,
         "max_tokens": 160,
         "messages": [
             {"role": "system", "content": (
-                "Miras la camara del robot y buscas un solo objeto. "
-                "visible es true solo si ese objeto se distingue. "
-                "lado es frente, izquierda, derecha o indeterminada, desde la camara. "
-                "Si no esta, visible=false, lado=indeterminada y objeto='ninguno'. "
-                "Responde solo JSON con objeto, lado y visible."
+                "Miras una foto de la camara del robot y confirmas si el objeto pedido se ve. "
+                "Si aparece, aunque esté cerca, pequeño o con otro nombre parecido, "
+                "visible es true y objeto es exactamente el nombre pedido. "
+                "lado es frente si está en el centro o adelante, izquierda, derecha o indeterminada. "
+                "Solo usa visible false si el objeto no está en la foto. "
+                "Responde solo JSON."
             )},
             {"role": "user", "content": [
-                {"type": "text", "text": "Busca este objeto: " + objeto},
+                {"type": "text", "text": (
+                    "Confirma si se ve: " + alias + ". "
+                    "Si sí está al frente responde "
+                    "{\"objeto\":\"" + objeto + "\",\"lado\":\"frente\",\"visible\":true}."
+                )},
                 {"type": "image_url", "image_url": {"url": "data:image/jpeg;base64," + imagen}},
             ]},
         ],

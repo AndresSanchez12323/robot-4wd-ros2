@@ -24,7 +24,7 @@ En un salón de universidad se pueden pedir, además: cuaderno 17, lápiz 18, es
 
 ## Antes de arrancar los contenedores
 
-1. En el S3, cargar otra vez `navegacion_autonoma/s3_integral/s3_integral.ino`. El DevKit que ya acepta PWM 140 no cambia. La cámara queda en 800×600. La página del carro debe seguir diciendo Versión 1.6 y, además, que acepta misiones del orquestador. Antes de cada foto el orquestador detiene el carro, mira y recién ahí lo mueve. Si ve el objeto al frente, avanza hasta quedar cerca. Si no lo ve y el frente está libre, avanza para buscarlo. Solo gira cuando hay una pared, y siempre hacia el mismo lado.
+1. En el S3, cargar otra vez `navegacion_autonoma/s3_integral/s3_integral.ino`. El DevKit que ya acepta PWM 140 no cambia. La cámara queda en 800×600. La página del carro debe seguir diciendo Versión 1.6 y, además, que acepta misiones del orquestador. Antes de cada foto el orquestador detiene el carro, mira y recién ahí lo mueve. Si ve el objeto al frente, lo confirma y avanza hasta quedar cerca. Si está cerca y la cámara lo confirma, se detiene aunque el modelo diga solo «centro» o «una botella». Si no lo ve y el frente está libre, avanza para buscarlo. Solo gira cuando hay una pared, y siempre hacia el mismo lado.
 2. Confirmar en `http://192.168.4.1/` el frente, el radio 150 mm y que los ángulos crecen hacia la izquierda.
 3. El Victus entra a Lamborgini, con la clave `andresx3`, y conserva internet por cable o por el celular. Sin internet el LLM de la nube sale apagado y el carro no se mueve.
 4. Copiar `.env.example` a `.env`. Cambiar `TOKEN` y poner en `LLM_URL` la dirección pública del contenedor de la nube. El mismo token va en los dos sitios.

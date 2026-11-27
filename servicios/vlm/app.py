@@ -49,11 +49,12 @@ class VLM(Base):
             self.rechazar(400, str(exc))
             return
         objeto, imagen = datos.get("objeto"), datos.get("imagen")
+        pistas = datos.get("pistas") if isinstance(datos.get("pistas"), list) else []
         if not isinstance(objeto, str) or not 1 <= len(objeto) <= 40 or not jpeg_valido(imagen):
             self.rechazar(400, "objeto o imagen")
             return
         try:
-            visto = extraer(pedir_modelo(MODELO_URL, mensaje(objeto.strip(), imagen)))
+            visto = extraer(pedir_modelo(MODELO_URL, mensaje(objeto.strip(), imagen, pistas)))
         except (OSError, ValueError, KeyError, TypeError, IndexError):
             self.rechazar(503, "el modelo de vision no respondio")
             return

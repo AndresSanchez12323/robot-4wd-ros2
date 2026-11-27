@@ -6,8 +6,15 @@ ECO_PROPIO = 80
 ANTICIPACION = 150
 
 
+def _coincide(visto, alias):
+    alias = alias.strip().lower()
+    if not alias or visto == alias:
+        return bool(alias)
+    return len(alias) >= 4 and alias in visto
+
+
 def nombre_visto(destino, objeto, catalogo):
-    """Acepta el nombre del catalogo o una de sus pistas, como soda para gaseosa."""
+    """Acepta el nombre del catalogo, una pista o una frase que lo contenga."""
     if not isinstance(objeto, str) or not isinstance(destino, str) or not isinstance(catalogo, list):
         return objeto
     visto = objeto.strip().lower()
@@ -22,9 +29,26 @@ def nombre_visto(destino, objeto, catalogo):
         pistas = lugar.get("pistas")
         if isinstance(pistas, list):
             alias.extend(pista for pista in pistas if isinstance(pista, str))
-        if any(visto == alias_item.strip().lower() for alias_item in alias):
+        if any(_coincide(visto, item) for item in alias):
             return nombre
     return objeto
+
+
+def pistas_de(destino, catalogo):
+    if not isinstance(destino, str) or not isinstance(catalogo, list):
+        return []
+    pedido = destino.strip().lower()
+    for lugar in catalogo:
+        if not isinstance(lugar, dict):
+            continue
+        nombre = lugar.get("nombre")
+        if not isinstance(nombre, str) or nombre.strip().lower() != pedido:
+            continue
+        pistas = lugar.get("pistas")
+        if not isinstance(pistas, list):
+            return []
+        return [pista.strip() for pista in pistas if isinstance(pista, str) and pista.strip()][:8]
+    return []
 
 
 def seguir_busqueda(accion, sentido, frente_libre, pasos_sin_ver):

@@ -13,7 +13,7 @@ from urllib.request import Request, urlopen
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from comun.servicio import Base, leer_json, responder, servir, token_valido
-from orquestador.logica import evaluar, llegada, nombre_visto, resumen_lidar, robot_util, seguir_busqueda
+from orquestador.logica import evaluar, llegada, nombre_visto, pistas_de, resumen_lidar, robot_util, seguir_busqueda
 
 TOKEN = os.environ.get("TOKEN", "")
 URLS = {
@@ -237,7 +237,9 @@ def _recorrer(texto):
                 return
             try:
                 foto = _captura()
-                vision = _json(URLS["vlm"], "/ver", {"objeto": nombre, "imagen": foto}, token=True, timeout=80)
+                vision = _json(URLS["vlm"], "/ver", {
+                    "objeto": nombre, "imagen": foto, "pistas": pistas_de(nombre, CATALOGO),
+                }, token=True, timeout=80)
                 if isinstance(vision, dict):
                     vision["objeto"] = nombre_visto(nombre, vision.get("objeto"), CATALOGO)
                 decision = _json(URLS["vla"], "/decidir", {
