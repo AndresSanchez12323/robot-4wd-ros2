@@ -13,7 +13,7 @@ from urllib.request import Request, urlopen
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from comun.servicio import Base, leer_json, responder, servir, token_valido
-from orquestador.logica import evaluar, llegada, resumen_lidar, robot_util, seguir_busqueda
+from orquestador.logica import evaluar, llegada, nombre_visto, resumen_lidar, robot_util, seguir_busqueda
 
 TOKEN = os.environ.get("TOKEN", "")
 URLS = {
@@ -27,7 +27,8 @@ EXIGIR_GPU = os.environ.get("EXIGIR_GPU", "1") == "1"
 PUERTO = int(os.environ.get("PUERTO", "8080"))
 PASOS = int(os.environ.get("PASOS_POR_LUGAR", "40"))
 GIRO_SEGUNDOS = 0.35
-AVANCE_SEGUNDOS = 0.45
+AVANCE_SEGUNDOS = 0.8
+ACERCAR_SEGUNDOS = 1.2
 RAIZ = Path(__file__).resolve().parent
 CATALOGO = json.loads((RAIZ / "catalogo.json").read_text(encoding="utf-8"))
 
@@ -196,6 +197,7 @@ def _recorrer(texto):
         ultima = ""
         ordenes = 0
         sentido = 1
+        pasos_sin_ver = 0
         for _paso in range(PASOS):
             if detener.is_set():
                 break
@@ -236,6 +238,8 @@ def _recorrer(texto):
             try:
                 foto = _captura()
                 vision = _json(URLS["vlm"], "/ver", {"objeto": nombre, "imagen": foto}, token=True, timeout=80)
+                if isinstance(vision, dict):
+                    vision["objeto"] = nombre_visto(nombre, vision.get("objeto"), CATALOGO)
                 decision = _json(URLS["vla"], "/decidir", {
                     "destino": nombre, "vision": vision, "lidar": resumen_lidar(estado),
                 }, token=True, timeout=4)
@@ -248,7 +252,10 @@ def _recorrer(texto):
                 _parar_robot()
                 _publicar(estado="detenida", detalle="VLM o VLA no contestaron. Motores quietos.")
                 return
-            accion, sentido = seguir_busqueda(decision["accion"], sentido)
+            visto = decision["accion"] == "avanzar"
+            lidar = resumen_lidar(estado)
+            accion, sentido, pasos_sin_ver = seguir_busqueda(
+                decision["accion"], sentido, bool(lidar.get("frente_libre")), pasos_sin_ver)
             _publicar(accion=accion, detalle=decision.get("motivo", nombre))
             if accion == "parar" or detener.is_set():
                 _parar_robot()
@@ -261,7 +268,12 @@ def _recorrer(texto):
                 return
             ultima = accion
             ordenes += 1
-            time.sleep(GIRO_SEGUNDOS if accion.startswith("girar_") else AVANCE_SEGUNDOS)
+            if accion.startswith("girar_"):
+                time.sleep(GIRO_SEGUNDOS)
+            elif visto:
+                time.sleep(ACERCAR_SEGUNDOS)
+            else:
+                time.sleep(AVANCE_SEGUNDOS)
         else:
             _parar_robot()
             _publicar(estado="detenida", detalle="No encontro " + nombre + " a tiempo")

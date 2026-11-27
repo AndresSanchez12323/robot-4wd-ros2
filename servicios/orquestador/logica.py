@@ -6,17 +6,43 @@ ECO_PROPIO = 80
 ANTICIPACION = 150
 
 
-def seguir_busqueda(accion, sentido):
-    """Si el objeto no se ve, el carro sigue girando hacia el mismo lado."""
+def nombre_visto(destino, objeto, catalogo):
+    """Acepta el nombre del catalogo o una de sus pistas, como soda para gaseosa."""
+    if not isinstance(objeto, str) or not isinstance(destino, str) or not isinstance(catalogo, list):
+        return objeto
+    visto = objeto.strip().lower()
+    pedido = destino.strip().lower()
+    for lugar in catalogo:
+        if not isinstance(lugar, dict):
+            continue
+        nombre = lugar.get("nombre")
+        if not isinstance(nombre, str) or nombre.strip().lower() != pedido:
+            continue
+        alias = [nombre]
+        pistas = lugar.get("pistas")
+        if isinstance(pistas, list):
+            alias.extend(pista for pista in pistas if isinstance(pista, str))
+        if any(visto == alias_item.strip().lower() for alias_item in alias):
+            return nombre
+    return objeto
+
+
+def seguir_busqueda(accion, sentido, frente_libre, pasos_sin_ver):
+    """Si el objeto se ve, va hacia el. Si no, avanza con el frente libre y solo gira cuando hay pared."""
+    if accion == "parar":
+        return "parar", sentido, 0
+    if accion == "avanzar":
+        return "avanzar", sentido, 0
     if accion == "girar_izquierda":
-        return "girar_izquierda", 1
+        return "girar_izquierda", 1, 0
     if accion == "girar_derecha":
-        return "girar_derecha", -1
-    if accion == "explorar":
-        if sentido < 0:
-            return "girar_derecha", -1
-        return "girar_izquierda", 1
-    return accion, sentido
+        return "girar_derecha", -1, 0
+    sentido = -1 if sentido < 0 else 1
+    pasos = pasos_sin_ver + 1
+    if frente_libre and pasos % 4 != 0:
+        return "avanzar", sentido, pasos
+    giro = "girar_derecha" if sentido < 0 else "girar_izquierda"
+    return giro, sentido, pasos
 
 
 def evaluar(servicios):
