@@ -32,7 +32,7 @@ data "aws_subnet" "gpu" {
   vpc_id = data.aws_vpc.default.id
   filter {
     name   = "availability-zone"
-    values = ["us-east-1a"]
+    values = ["us-east-1b"]
   }
   filter {
     name   = "default-for-az"
