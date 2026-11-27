@@ -265,6 +265,9 @@ esp_err_t pararWeb(httpd_req_t *req) {
 
 esp_err_t capturaWeb(httpd_req_t *req) {
   if (!camaraIniciada) return httpd_resp_send_500(req);
+  camera_fb_t *vieja = esp_camera_fb_get();
+  if (vieja) esp_camera_fb_return(vieja);
+  vTaskDelay(pdMS_TO_TICKS(200));
   camera_fb_t *imagen = esp_camera_fb_get();
   if (!imagen) return httpd_resp_send_500(req);
   httpd_resp_set_type(req, "image/jpeg");
@@ -319,7 +322,7 @@ bool iniciarServidores() {
   httpd_config_t web = HTTPD_DEFAULT_CONFIG();
   web.server_port = 80;
   web.stack_size = 8192;
-  web.send_wait_timeout = 2;
+  web.send_wait_timeout = 5;
   if (httpd_start(&servidorWeb, &web) != ESP_OK) return false;
   bool bien = registrarRuta(servidorWeb, "/", HTTP_GET, paginaWeb) &&
     registrarRuta(servidorWeb, "/estado", HTTP_GET, estadoWeb) &&
@@ -353,15 +356,26 @@ bool iniciarCamara() {
   config.pin_pwdn = -1; config.pin_reset = -1;
   config.xclk_freq_hz = 20000000;
   config.pixel_format = PIXFORMAT_JPEG;
-  config.frame_size = FRAMESIZE_QVGA;
-  config.jpeg_quality = 16;
   const bool psram = psramFound();
+  config.frame_size = psram ? FRAMESIZE_SVGA : FRAMESIZE_QVGA;
+  config.jpeg_quality = psram ? 10 : 16;
   config.fb_count = psram ? 2 : 1;
   config.fb_location = psram ? CAMERA_FB_IN_PSRAM : CAMERA_FB_IN_DRAM;
   config.grab_mode = psram ? CAMERA_GRAB_LATEST : CAMERA_GRAB_WHEN_EMPTY;
   Serial.printf("PSRAM=%s | buferes=%d\n", psram ? "SI" : "NO", config.fb_count);
   const esp_err_t resultado = esp_camera_init(&config);
   Serial.printf("CAMARA init=0x%X\n", (unsigned)resultado);
+  if (resultado == ESP_OK && psram) {
+    sensor_t *sensor = esp_camera_sensor_get();
+    if (sensor) {
+      sensor->set_brightness(sensor, 1);
+      sensor->set_whitebal(sensor, 1);
+      sensor->set_awb_gain(sensor, 1);
+      sensor->set_exposure_ctrl(sensor, 1);
+      sensor->set_aec2(sensor, 1);
+      sensor->set_gain_ctrl(sensor, 1);
+    }
+  }
   return resultado == ESP_OK;
 }
 

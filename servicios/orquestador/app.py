@@ -26,6 +26,7 @@ URLS = {
 EXIGIR_GPU = os.environ.get("EXIGIR_GPU", "1") == "1"
 PUERTO = int(os.environ.get("PUERTO", "8080"))
 PASOS = int(os.environ.get("PASOS_POR_LUGAR", "40"))
+PASO_SEGUNDOS = 0.6
 RAIZ = Path(__file__).resolve().parent
 CATALOGO = json.loads((RAIZ / "catalogo.json").read_text(encoding="utf-8"))
 
@@ -127,10 +128,23 @@ def _parar_robot():
 
 
 def _captura():
-    tipo, bruto = _get(URLS["robot"], "/captura", 3)
+    tipo, bruto = _get(URLS["robot"], "/captura", 5)
     if tipo != "image/jpeg" or not 4 <= len(bruto) <= 1_200_000 or not bruto.startswith(b"\xff\xd8"):
         raise ValueError("captura")
     return base64.b64encode(bruto).decode("ascii")
+
+
+def _esperar_quieto():
+    limite = time.monotonic() + 2.0
+    while time.monotonic() < limite:
+        if detener.is_set():
+            return True
+        estado = _estado_robot()
+        if estado and not estado.get("activa") and not estado.get("moviendo"):
+            time.sleep(0.35)
+            return True
+        time.sleep(0.1)
+    return False
 
 
 def _latir(fin):
@@ -180,8 +194,36 @@ def _recorrer(texto):
         parada_inicial = estado.get("ultimaParada")
         ultima = ""
         ordenes = 0
-        enviado_en = 0.0
         for _paso in range(PASOS):
+            if detener.is_set():
+                break
+            estado = _estado_robot()
+            if not estado:
+                _parar_robot()
+                _publicar(estado="detenida", detalle="Se perdio el carro")
+                return
+            if ordenes >= 1:
+                resultado = llegada(ultima or "explorar", estado, parada_inicial, ordenes)
+                if resultado == "llegue":
+                    _parar_robot()
+                    ultima = ""
+                    break
+                if resultado == "fallo":
+                    _parar_robot()
+                    _publicar(estado="detenida", detalle="El carro paro por " + str(estado.get("ultimaParada")))
+                    return
+            _publicar(accion="parar", detalle="Quieto para mirar " + nombre)
+            try:
+                _orden_robot("parar")
+            except (OSError, ValueError):
+                _publicar(estado="detenida", detalle="El carro no quedo quieto para la foto")
+                return
+            if not _esperar_quieto():
+                if detener.is_set():
+                    break
+                _parar_robot()
+                _publicar(estado="detenida", detalle="El carro no quedo quieto para la foto")
+                return
             if detener.is_set():
                 break
             estado = _estado_robot()
@@ -205,26 +247,19 @@ def _recorrer(texto):
                 _publicar(estado="detenida", detalle="VLM o VLA no contestaron. Motores quietos.")
                 return
             accion = decision["accion"]
-            resultado = llegada(accion, estado, parada_inicial, ordenes)
             _publicar(accion=accion, detalle=decision.get("motivo", nombre))
-            if resultado == "llegue":
+            if accion == "parar" or detener.is_set():
                 _parar_robot()
                 ultima = ""
                 break
-            if resultado == "fallo":
-                _parar_robot()
-                _publicar(estado="detenida", detalle="El carro paro por " + str(estado.get("ultimaParada")))
+            try:
+                _orden_robot(accion)
+            except (OSError, ValueError):
+                _publicar(estado="detenida", detalle="El carro rechazo la orden")
                 return
-            if accion != ultima or (not estado.get("activa") and time.monotonic() - enviado_en > 1.5):
-                try:
-                    _orden_robot(accion)
-                except (OSError, ValueError):
-                    _publicar(estado="detenida", detalle="El carro rechazo la orden")
-                    return
-                ultima = accion
-                enviado_en = time.monotonic()
-                ordenes += 1
-            time.sleep(0.6)
+            ultima = accion
+            ordenes += 1
+            time.sleep(PASO_SEGUNDOS)
         else:
             _parar_robot()
             _publicar(estado="detenida", detalle="No encontro " + nombre + " a tiempo")
