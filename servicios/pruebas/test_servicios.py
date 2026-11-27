@@ -56,6 +56,7 @@ class Lenguaje(unittest.TestCase):
         self.assertEqual(nombres[17], "cuaderno")
         self.assertEqual(nombres[23], "computador")
         self.assertEqual(nombres[27], "regla")
+        self.assertEqual(nombres[28], "reloj")
 
 
 class Accion(unittest.TestCase):

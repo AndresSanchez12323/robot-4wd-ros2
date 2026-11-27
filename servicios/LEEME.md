@@ -20,7 +20,7 @@ El catálogo está en `orquestador/catalogo.json`. Los lugares de clase siguen p
 
 Para ensayar sin armar una cocina se agregaron objetos, con números nuevos: gaseosa 5, celular 6, bolsa 7, gafas 8, botella 9, libro 10, llaves 11, zapato 12, silla 13, mesa 14, pelota 15 y mochila 16. «Quiero la gaseosa» sale como 5. «Ve a la gaseosa, al celular y a la bolsa» sale `5 6 7`. «Ve al bolso» también sale como bolsa, 7.
 
-En un salón de universidad se pueden pedir, además: cuaderno 17, lápiz 18, esfero 19, borrador 20, marcador 21, cartuchera 22, computador 23, audífonos 24, cargador 25, carnet 26 y regla 27. «Ve al cuaderno» sale como 17. «Ve a la mochila y al computador» sale `16 23`.
+En un salón de universidad se pueden pedir, además: cuaderno 17, lápiz 18, esfero 19, borrador 20, marcador 21, cartuchera 22, computador 23, audífonos 24, cargador 25, carnet 26, regla 27 y reloj 28. «Ve al cuaderno» sale como 17. «Ve al reloj» sale como 28. «Ve a la mochila y al computador» sale `16 23`.
 
 ## Antes de arrancar los contenedores
 

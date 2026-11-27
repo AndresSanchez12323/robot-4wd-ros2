@@ -25,5 +25,6 @@
   {"id": 24, "nombre": "audifonos", "pistas": ["audífonos", "headphones", "diadema"]},
   {"id": 25, "nombre": "cargador", "pistas": ["charger", "cable de carga"]},
   {"id": 26, "nombre": "carnet", "pistas": ["identificacion", "identificación", "tarjeta"]},
-  {"id": 27, "nombre": "regla", "pistas": ["ruler"]}
+  {"id": 27, "nombre": "regla", "pistas": ["ruler"]},
+  {"id": 28, "nombre": "reloj", "pistas": ["watch", "clock", "hora"]}
 ]
