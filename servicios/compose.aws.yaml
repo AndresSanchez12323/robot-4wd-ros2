@@ -52,7 +52,9 @@ services:
     environment:
       CAPAS_EN_GPU: "99"
   proxy:
-    image: nginx:stable-alpine
+    build:
+      context: .
+      dockerfile: aws/Dockerfile
     restart: unless-stopped
     depends_on:
       - llm
@@ -60,5 +62,3 @@ services:
       - gpu
     ports:
       - "127.0.0.1:8080:8080"
-    volumes:
-      - ./aws/nginx.conf:/etc/nginx/conf.d/default.conf:ro
