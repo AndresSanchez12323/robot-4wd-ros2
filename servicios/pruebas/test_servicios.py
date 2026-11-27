@@ -78,10 +78,9 @@ class Accion(unittest.TestCase):
         self.assertEqual(llegada("avanzar", {"activa": False, "ultimaParada": "Parado al lado del objetivo"},
                                  "Ninguna", 1, True), "llegue")
 
-    def test_sin_objeto_avanza_y_solo_gira_ante_la_pared(self):
-        self.assertEqual(seguir_busqueda("explorar", 1, True, 0), ("avanzar", 1, 1))
-        self.assertEqual(seguir_busqueda("explorar", 1, False, 0), ("girar_izquierda", 1, 1))
-        self.assertEqual(seguir_busqueda("explorar", 1, True, 3), ("girar_izquierda", 1, 4))
+    def test_sin_objeto_explora_con_esquive(self):
+        self.assertEqual(seguir_busqueda("explorar", 1, True, 0), ("explorar", 1, 1))
+        self.assertEqual(seguir_busqueda("explorar", 1, False, 2), ("explorar", 1, 3))
         self.assertEqual(seguir_busqueda("avanzar", -1, True, 2), ("avanzar", -1, 0))
         self.assertEqual(seguir_busqueda("girar_derecha", 1, True, 1), ("girar_derecha", -1, 0))
         self.assertEqual(nombre_visto("gaseosa", "soda", [

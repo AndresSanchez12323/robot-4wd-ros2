@@ -51,8 +51,8 @@ def pistas_de(destino, catalogo):
     return []
 
 
-def seguir_busqueda(accion, sentido, frente_libre, pasos_sin_ver):
-    """Si el objeto se ve, va hacia el. Si no, avanza con el frente libre y solo gira cuando hay pared."""
+def seguir_busqueda(accion, sentido, _frente_libre, pasos_sin_ver):
+    """Si el objeto se ve, va hacia el. Si no, explora con el esquive del LiDAR para no chocar."""
     if accion == "parar":
         return "parar", sentido, 0
     if accion == "avanzar":
@@ -62,11 +62,7 @@ def seguir_busqueda(accion, sentido, frente_libre, pasos_sin_ver):
     if accion == "girar_derecha":
         return "girar_derecha", -1, 0
     sentido = -1 if sentido < 0 else 1
-    pasos = pasos_sin_ver + 1
-    if frente_libre and pasos % 4 != 0:
-        return "avanzar", sentido, pasos
-    giro = "girar_derecha" if sentido < 0 else "girar_izquierda"
-    return giro, sentido, pasos
+    return "explorar", sentido, pasos_sin_ver + 1
 
 
 def anotar(bitacora, actual, limite=60):
