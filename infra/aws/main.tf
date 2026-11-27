@@ -68,9 +68,27 @@ resource "aws_iam_role" "ec2" {
     }]
   })
 }
-resource "aws_iam_role_policy_attachment" "ssm" {
-  role       = aws_iam_role.ec2.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+resource "aws_iam_role_policy" "ssm" {
+  name = "ssm-agent"
+  role = aws_iam_role.ec2.name
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = [
+        "ssm:DescribeAssociation", "ssm:GetDocument", "ssm:DescribeDocument",
+        "ssm:ListAssociations", "ssm:ListInstanceAssociations",
+        "ssm:UpdateAssociationStatus", "ssm:UpdateInstanceAssociationStatus",
+        "ssm:UpdateInstanceInformation",
+        "ssmmessages:CreateControlChannel", "ssmmessages:CreateDataChannel",
+        "ssmmessages:OpenControlChannel", "ssmmessages:OpenDataChannel",
+        "ec2messages:AcknowledgeMessage", "ec2messages:DeleteMessage",
+        "ec2messages:FailMessage", "ec2messages:GetEndpoint",
+        "ec2messages:GetMessages", "ec2messages:SendReply"
+      ]
+      Resource = "*"
+    }]
+  })
 }
 resource "aws_iam_role_policy" "token" {
   name = "token"
@@ -109,7 +127,7 @@ resource "aws_instance" "gpu" {
   lifecycle {
     ignore_changes = [ami]
   }
-  depends_on = [aws_iam_role_policy_attachment.ssm, aws_iam_role_policy.token]
+  depends_on = [aws_iam_role_policy.ssm, aws_iam_role_policy.token]
 }
 resource "aws_ssm_document" "deploy" {
   name          = "${local.name}-deploy"
