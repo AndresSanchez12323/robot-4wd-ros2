@@ -52,6 +52,10 @@ class Lenguaje(unittest.TestCase):
         self.assertEqual(nombres[5], "gaseosa")
         self.assertEqual(nombres[6], "celular")
         self.assertEqual(nombres[7], "bolsa")
+        self.assertEqual(nombres[16], "mochila")
+        self.assertEqual(nombres[17], "cuaderno")
+        self.assertEqual(nombres[23], "computador")
+        self.assertEqual(nombres[27], "regla")
 
 
 class Accion(unittest.TestCase):

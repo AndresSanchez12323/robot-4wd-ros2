@@ -9,7 +9,7 @@ LIMITE_LUGARES = 8
 
 
 def catalogo_valido(catalogo):
-    if not isinstance(catalogo, list) or not 1 <= len(catalogo) <= 20:
+    if not isinstance(catalogo, list) or not 1 <= len(catalogo) <= 30:
         return False
     vistos = set()
     for lugar in catalogo:
