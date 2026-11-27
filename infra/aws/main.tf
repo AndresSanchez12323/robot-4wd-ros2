@@ -28,6 +28,17 @@ locals {
 data "aws_vpc" "default" {
   default = true
 }
+data "aws_subnet" "gpu" {
+  vpc_id = data.aws_vpc.default.id
+  filter {
+    name   = "availability-zone"
+    values = ["us-east-1a"]
+  }
+  filter {
+    name   = "default-for-az"
+    values = ["true"]
+  }
+}
 data "aws_ssm_parameter" "ami" {
   name = "/aws/service/deeplearning/ami/x86_64/base-oss-nvidia-driver-gpu-ubuntu-22.04/latest/ami-id"
 }
@@ -80,6 +91,7 @@ resource "aws_instance" "gpu" {
   count                       = var.provision_gpu ? 1 : 0
   ami                         = data.aws_ssm_parameter.ami.value
   instance_type               = "g6.xlarge"
+  subnet_id                   = data.aws_subnet.gpu.id
   associate_public_ip_address = true
   vpc_security_group_ids      = [aws_security_group.gpu.id]
   iam_instance_profile        = aws_iam_instance_profile.gpu.name
