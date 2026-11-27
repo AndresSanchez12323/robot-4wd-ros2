@@ -1,0 +1,64 @@
+name: robot-modelos-aws
+services:
+  modelo:
+    image: ghcr.io/ggml-org/llama.cpp:server-cuda@sha256:3f825497190fed44861c374495ad662c995c9f3efc375bcfea4f560734b6a6a3
+    restart: unless-stopped
+    gpus: all
+    volumes:
+      - ${MODELOS_DIR:?}:/modelos:ro
+    command:
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8080"
+      - --model
+      - /modelos/Qwen3VL-30B-A3B-Instruct-Q4_K_M.gguf
+      - --mmproj
+      - /modelos/mmproj-Qwen3VL-30B-A3B-Instruct-Q8_0.gguf
+      - --n-gpu-layers
+      - "99"
+      - --ctx-size
+      - "4096"
+      - --parallel
+      - "1"
+      - --ubatch-size
+      - "256"
+      - --image-max-tokens
+      - "768"
+  llm:
+    build:
+      context: .
+      dockerfile: llm/Dockerfile
+    restart: unless-stopped
+    environment:
+      TOKEN: ${TOKEN:?}
+      MODELO_URL: http://modelo:8080
+  vlm:
+    build:
+      context: .
+      dockerfile: vlm/Dockerfile
+    restart: unless-stopped
+    environment:
+      TOKEN: ${TOKEN:?}
+      MODELO_URL: http://modelo:8080
+      GPU_URL: http://gpu:8080
+      EXIGIR_GPU: "1"
+  gpu:
+    build:
+      context: .
+      dockerfile: gpu/Dockerfile
+    restart: unless-stopped
+    gpus: all
+    environment:
+      CAPAS_EN_GPU: "99"
+  proxy:
+    image: nginx:stable-alpine
+    restart: unless-stopped
+    depends_on:
+      - llm
+      - vlm
+      - gpu
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - ./aws/nginx.conf:/etc/nginx/conf.d/default.conf:ro

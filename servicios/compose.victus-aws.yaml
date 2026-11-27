@@ -1,0 +1,13 @@
+services:
+  orquestador:
+    environment:
+      LLM_URL: http://host.docker.internal:18080/llm
+      VLM_URL: http://host.docker.internal:18080/vlm
+      GPU_URL: http://host.docker.internal:18080/gpu
+    depends_on: !override
+      - vla
+  gateway:
+    environment:
+      LLM_URL: http://host.docker.internal:18080/llm
+      VLM_URL: http://host.docker.internal:18080/vlm
+      GPU_URL: http://host.docker.internal:18080/gpu
